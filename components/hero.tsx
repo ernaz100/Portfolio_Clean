@@ -70,8 +70,7 @@ export function Hero() {
             <p className="animate-in fade-in slide-in-from-bottom-4 max-w-lg text-lg leading-relaxed text-muted-foreground duration-500 [animation-delay:300ms] [animation-fill-mode:both]">
               Working student at the AI Core Team in R&D at Mercedes-Benz.
               Finishing my Master&apos;s in Machine Learning at University of
-              Tübingen with a thesis on Spatial Reasoning for Human Motion
-              Diffusion.
+              Tübingen with a thesis in the Continuous learning on multimodal data streams group.
             </p>
 
             {/* Social links */}

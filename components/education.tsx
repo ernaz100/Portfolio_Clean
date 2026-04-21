@@ -10,7 +10,7 @@ const education = [
     school: "University of Tübingen",
     status: "In Progress",
     description:
-      "Master's thesis on Spatial Reasoning for Human Motion Diffusion. Coursework in deep learning, probabilistic machine learning, statistical machine learning, reinforcement learning, computer vision, and Real Virtual Humans.",
+      "Master's thesis on Future-Aware Streaming Motion Synthesis via Frame-Level Action Planning. Coursework in deep learning, probabilistic machine learning, statistical machine learning, reinforcement learning, computer vision, and Real Virtual Humans.",
   },
   {
     period: "2019 — 2023",
