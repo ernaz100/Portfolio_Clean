@@ -4,13 +4,13 @@ import { motion } from "framer-motion";
 import { FileText, ArrowUpRight } from "lucide-react";
 
 const publications = [
-  // {
-  //   type: "First Author",
-  //   venue: "2025",
-  //   title:
-  //     "ActionPlan: Future-Aware Streaming Motion Synthesis via Frame-Level Action Planning",
-  //   url: "#",
-  // },
+  {
+    type: "First Author",
+    venue: "arXiv 2026",
+    title:
+      "ActionPlan: Future-Aware Streaming Motion Synthesis via Frame-Level Action Planning",
+    url: "https://coral79.github.io/ActionPlan/",
+  },
   {
     type: "Co-Author",
     venue: "JMIR 2025",
@@ -69,11 +69,10 @@ export function Publications() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2 flex-wrap">
                     <span
-                      className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                        pub.type === "First Author"
+                      className={`px-2 py-0.5 text-xs font-medium rounded-full ${pub.type === "First Author"
                           ? "bg-foreground text-background"
                           : "border border-border bg-card text-muted-foreground"
-                      }`}
+                        }`}
                     >
                       {pub.type}
                     </span>
