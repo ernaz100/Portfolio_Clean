@@ -6,6 +6,7 @@
     "sync-openresearch": "python3 scripts/sync-openresearch.py",
     "predev": "python3 scripts/sync-openresearch.py",
     "prebuild": "python3 scripts/sync-openresearch.py",
+    "postbuild": "python3 scripts/copy-openresearch-to-out.py",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
