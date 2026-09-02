@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Copy project.html and its referenced media into public/openresearch/project0/."""
+"""Copy project.html and its referenced media into public/openresearch/project0/.
+
+On DigitalOcean / GitHub the cluster project0 tree is absent, so this is a no-op
+and the committed public/openresearch/project0/ files are used as-is.
+"""
 
 from __future__ import annotations
 
@@ -9,14 +13,23 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC_ROOT = ROOT.parents[1] / "project0"
-SRC_HTML = SRC_ROOT / "project.html"
 DEST_DIR = ROOT / "public" / "openresearch" / "project0"
 SRC_ATTR = re.compile(r"""(?:src|href)=["']([^"']+)["']""")
 
 
+def cluster_project0() -> Path | None:
+    if len(ROOT.parents) < 2:
+        return None
+    candidate = ROOT.parents[1] / "project0"
+    if (candidate / "project.html").is_file():
+        return candidate
+    return None
+
+
 def main() -> int:
-    if not SRC_HTML.is_file():
+    src_root = cluster_project0()
+    src_html = (src_root / "project.html") if src_root is not None else None
+    if src_html is None or not src_html.is_file():
         if (DEST_DIR / "index.html").is_file():
             print(f"kept {DEST_DIR} (no cluster project.html)")
             return 0
@@ -24,16 +37,16 @@ def main() -> int:
         return 1
 
     DEST_DIR.mkdir(parents=True, exist_ok=True)
-    html = SRC_HTML.read_text(encoding="utf-8")
+    html = src_html.read_text(encoding="utf-8")
     (DEST_DIR / "index.html").write_text(html, encoding="utf-8")
-    print(f"synced {SRC_HTML} -> {DEST_DIR / 'index.html'}")
+    print(f"synced {src_html} -> {DEST_DIR / 'index.html'}")
 
     copied = 0
     missing = 0
     for rel in dict.fromkeys(SRC_ATTR.findall(html)):
         if rel.startswith(("#", "http://", "https://", "mailto:", "data:")):
             continue
-        src = SRC_ROOT / rel
+        src = src_root / rel
         if not src.is_file():
             print(f"missing media {rel}", file=sys.stderr)
             missing += 1
