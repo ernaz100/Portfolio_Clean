@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "sync-openresearch": "python3 scripts/sync-openresearch.py",
+    "predev": "python3 scripts/sync-openresearch.py",
+    "prebuild": "python3 scripts/sync-openresearch.py",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

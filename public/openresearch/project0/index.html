@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>project0 — scene-aware ActionPlan</title>
+  <style>
+    :root {
+      --ink: #1c1914;
+      --muted: #5c564c;
+      --line: #d8d0c4;
+      --paper: #f4efe6;
+      --card: #fffdf8;
+      --accent: #9a3b1a;
+      --ok: #2f6b3a;
+      --warn: #8a5a12;
+      --bad: #8b2430;
+      --mono: "IBM Plex Mono", "ui-monospace", "SFMono-Regular", Menlo, monospace;
+      --sans: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+      --ui: "Segoe UI", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--ui);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      padding: 28px 24px 20px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    header .kicker {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    h1 {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 2.1rem;
+      margin: 6px 0 8px;
+      letter-spacing: -0.02em;
+    }
+    header p { margin: 0; color: var(--muted); max-width: 62ch; }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      margin-top: 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    nav a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
+    nav a:hover { border-color: var(--accent); color: var(--accent); }
+    main { max-width: 1080px; margin: 0 auto; padding: 8px 24px 64px; }
+    section { margin-top: 40px; }
+    h2 {
+      font-family: var(--sans);
+      font-size: 1.45rem;
+      margin: 0 0 12px;
+      padding-top: 8px;
+    }
+    h3 { font-size: 1.05rem; margin: 20px 0 8px; }
+    p { max-width: 72ch; }
+    .status {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .pill {
+      background: var(--card);
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+    }
+    .pill .lbl {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .pill .val { font-weight: 600; margin-top: 4px; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      gap: 8px;
+      margin: 16px 0;
+    }
+    .node {
+      background: var(--card);
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      min-width: 140px;
+      flex: 1;
+    }
+    .node .kind {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+    .node h4 { margin: 4px 0; font-size: 0.95rem; }
+    .node .path { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .arrow {
+      align-self: center;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background: var(--card);
+      border: 1px solid var(--line);
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    code, .path {
+      font-family: var(--mono);
+      font-size: 0.86em;
+    }
+    ul, ol { max-width: 76ch; }
+    li { margin: 4px 0; }
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } .arrow { display: none; } }
+    .clip {
+      background: var(--card);
+      border: 1px solid var(--line);
+      padding: 12px;
+    }
+    .clip h3 { margin: 0 0 6px; }
+    .clip .meta { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    video, img {
+      width: 100%;
+      background: #111;
+      display: block;
+      margin-top: 6px;
+    }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }
+    .fail { border-left: 3px solid var(--bad); padding-left: 12px; margin: 14px 0; }
+    .fix { border-left: 3px solid var(--ok); padding-left: 12px; margin: 14px 0; }
+    .note {
+      background: #efe6d6;
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      font-size: 14px;
+      max-width: 76ch;
+    }
+    footer {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      border-top: 1px solid var(--line);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="kicker">project0 · updated 28 Aug 2026</div>
+    <h1>Scene-aware ActionPlan</h1>
+    <p>
+      Make ActionPlan navigation-aware using TRUMANS rooms and VGGT-Ω scene latents.
+      First concrete deliverable: HUMANISE-style rejection placement of HumanML3D-272
+      locomotion into one TRUMANS scene, with ego + 3D visualization.
+    </p>
+    <nav>
+      <a href="#status">Status</a>
+      <a href="#goal">Goal</a>
+      <a href="#assumptions">Assumptions</a>
+      <a href="#approach">Approach</a>
+      <a href="#decisions">Decisions</a>
+      <a href="#failures">Failure modes</a>
+      <a href="#results">Results</a>
+      <a href="#compare">TRUMANS vs ego</a>
+      <a href="#scale">Scale</a>
+      <a href="#next">Next</a>
+      <a href="#run">Run</a>
+    </nav>
+    <div class="status" id="status">
+      <div class="pill"><div class="lbl">Phase</div><div class="val">Placement smoke (done)</div></div>
+      <div class="pill"><div class="lbl">Scene</div><div class="val">00add26c… / 2023-01-17@00-33-01</div></div>
+      <div class="pill"><div class="lbl">Accepted clips</div><div class="val ok">3 in-room, textured ego</div></div>
+      <div class="pill"><div class="lbl">Not started</div><div class="val warn">VGGT condition · denoiser</div></div>
+    </div>
+  </header>
+
+  <main>
+    <section id="goal">
+      <h2>Goal</h2>
+      <p>
+        ActionPlan (condmdi_smpl) already denoises a dual stream: sequence CLIP text plus a dense
+        per-frame action-plan. It does not see geometry. The long-term bet is to add a
+        <strong>scene latent</strong> from VGGT-Ω run on egocentric TRUMANS video, so generated
+        locomotion stays inside real rooms instead of an empty floor.
+      </p>
+      <p>
+        We did not start by training. We first asked whether we can even
+        <em>place existing HML3D motions into a TRUMANS room</em> without walking through
+        tables or leaking into mesh artifacts. That smoke test is what exists today.
+      </p>
+    </section>
+
+    <section id="assumptions">
+      <h2>Assumptions</h2>
+      <ol>
+        <li>Scene conditioning is <strong>extra</strong> (cross-attention), not a replacement for the dual-stream RF model.</li>
+        <li>Train data should be HML3D-272 placed into TRUMANS, not a first conversion of TRUMANS SMPL-X → 272.</li>
+        <li>272 features decode with <code>condmdi_smpl/src/tools/streamer272_feats.py</code> (Y-up). The copy under <code>prepare/amasstools/</code> has the wrong layout and produces garbage scale.</li>
+        <li>Lived space is the original actor’s root trajectory, not the entire watertight Scene_mesh AABB (that AABB includes a leaky hallway).</li>
+        <li>GPU work runs in tmux session <code>gpu</code> (A100). Do not render on the login node.</li>
+        <li>Ego that should look like TRUMANS uses the textured <code>.blend</code>, Blender 3.6.9. Mesh-tier OBJ is untextured clay and was only a crash fallback.</li>
+      </ol>
+    </section>
+
+    <section id="approach">
+      <h2>Approach</h2>
+      <p>Two tracks. Track A is infrastructure. Track B is the smoke test we actually closed.</p>
+
+      <h3>Track A — TRUMANS ego → VGGT-Ω</h3>
+      <div class="flow">
+        <div class="node"><div class="kind">dataset</div><h4>TRUMANS</h4><div class="path">data/</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">process</div><h4>Head ego render</h4><div class="path">ego/run_sequence.py</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">artifact</div><h4>RGB + cam</h4><div class="path">out/ego/&lt;seq&gt;/ego/</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">process</div><h4>VGGT-Ω</h4><div class="path">ego/vggt_omega_infer.py</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">artifact</div><h4>Registers / depth</h4><div class="path">vggt_omega/predictions.npz</div></div>
+      </div>
+      <p>
+        1,824 takes are renderable (688 raw + 1,136 augment). ~98% blend-tier.
+        Demo sequence <code>2023-01-17@00-33-01</code> already has ego RGB, <code>ref.mp4</code>,
+        and a VGGT-Ω pass (<code>recon.mp4</code>, <code>scene.glb</code>).
+      </p>
+
+      <h3>Track B — HML3D rejection placement (smoke)</h3>
+      <div class="flow">
+        <div class="node"><div class="kind">dataset</div><h4>HML3D-272</h4><div class="path">23,384 train clips</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">process</div><h4>Walk filter + 272 decode</h4><div class="path">place/select_clips.py</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">process</div><h4>SE(2) search</h4><div class="path">place/place_clips.py</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">viz</div><h4>topdown / view3d / ego</h4><div class="path">place/finish_smoke.py</div></div>
+      </div>
+      <p>
+        Occupancy from <code>Scene_mesh</code> (surface voxels, 5 cm). Walkable map is the
+        <strong>0.35–1.20 m</strong> furniture band, masked to the GT actor’s room AABB,
+        then the largest connected component. Search samples open-floor cells
+        (distance transform ≥ 0.18 m), not the path centroid (that sits on the coffee table).
+        Hard constraint: root path stays in free space. Torso-vs-mesh is scored, not used
+        as a hard reject (pelvis sits above table tops).
+      </p>
+    </section>
+
+    <section id="decisions">
+      <h2>Decisions</h2>
+      <table>
+        <thead><tr><th>Choice</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Place HML3D into TRUMANS, don’t convert TRUMANS→272 first</td>
+            <td>Text + TAE already exist on HML3D-272. Scene alignment is the new problem.</td>
+          </tr>
+          <tr>
+            <td>Surface voxelization, not filled watertight</td>
+            <td>A filled room mesh marks the interior solid and leaves only the leaky hallway as “free.”</td>
+          </tr>
+          <tr>
+            <td>Furniture-height free map (0.35–1.20 m)</td>
+            <td>Chest-only (0.85–1.20 m) treats coffee tables as floor.</td>
+          </tr>
+          <tr>
+            <td>Mask to GT-lived room, then largest component</td>
+            <td>Largest component of the full mesh is the hallway south of the room (z ≈ −4 m).</td>
+          </tr>
+          <tr>
+            <td>Plant path centroid, not frame 0</td>
+            <td>Walking clips otherwise slide into doorways.</td>
+          </tr>
+          <tr>
+            <td>Score toward GT path + clearance, sample open floor</td>
+            <td>GT centroid is often on the table; tight-clearance scoring prefers alcoves.</td>
+          </tr>
+          <tr>
+            <td>Blend-tier ego (Blender 3.6.9)</td>
+            <td>Mesh-tier is clay-white. Blend SIGABRT was from an older Blender path; 3.6.9 holds.</td>
+          </tr>
+          <tr>
+            <td>Ego = full clip @ 15 fps</td>
+            <td>Smoke used to cap 40 frames / stride 4 / 10 fps (4 s). view3d was the whole motion.</td>
+          </tr>
+          <tr>
+            <td>GPU only in tmux <code>gpu</code></td>
+            <td>A100 allocation. Login node has no GPU / must not run Blender Cycles.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="failures">
+      <h2>Failure modes we actually hit</h2>
+
+      <div class="fail">
+        <strong>Hallway placements.</strong>
+        First three matches (<code>M014345</code>, <code>M005381</code>, <code>014461</code>)
+        were collision-free at <code>z ≈ −3.5 to −4.2</code> — an artifact corridor out of the room.
+        Filled occupancy + “largest free component” + 0.5 m clearance scoring.
+      </div>
+      <div class="fix">
+        Hollow voxels, room AABB from GT transl (mean z ≈ 1.75 m), largest component
+        <em>inside</em> the room. Ignore any folder with z ≪ 0.
+      </div>
+
+      <div class="fail">
+        <strong>Walk-through-table.</strong>
+        Next in-room matches (<code>002838</code>, <code>M011081</code>, <code>006325</code>)
+        sat at the GT centroid. Chest-height map missed the table; 3D joint collision was soft.
+      </div>
+      <div class="fix">
+        Furniture band includes table height. Root-in-free-space is hard. Sample distance-transform
+        open cells. Path length cap 2.5 m for this room.
+      </div>
+
+      <div class="fail">
+        <strong>White ego.</strong>
+        Mesh-tier OBJ + emissive gray + camera fill. Not the TRUMANS look.
+      </div>
+      <div class="fix">
+        Load the <code>.blend</code>, strip the baked actor, add SMPL-X, Cycles OPTIX.
+        This particular room’s walls really are pale; wood door / tiles / chair are the tell.
+      </div>
+    </section>
+
+    <section id="results">
+      <h2>Results — one scene smoke</h2>
+      <p>
+        Target: sequence <code>2023-01-17@00-33-01</code>, scene
+        <code>00add26c-7a26-4a61-b192-b97aa493b3f3</code>.
+        Mesh bounds ≈ 3.5 × 3.3 × 12.5 m; lived room
+        x ∈ [−1.20, 0.97], z ∈ [0.17, 2.66]. Open floor after furniture ≈ 2 m²
+        (max clearance 0.40 m).
+      </p>
+      <p>
+        40 random walk clips (4–10 s) → 27 skipped (path &gt; 2.5 m) → 13 searched at 600 SE(2) samples
+        → <strong>3 accepted</strong> (7.5% of walk candidates). Ego is every motion frame at 15 fps,
+        same duration as <code>view3d</code>.
+      </p>
+
+      <div class="grid2" style="margin-top:16px">
+        <article class="clip">
+          <h3>005646 — cleanest</h3>
+          <div class="meta">path 0.99 m · 218 fr · xz (−0.16, 2.27) · yaw 1.75 · 96/600 poses</div>
+          <p>“the toon walks forward, sways a bit, then walks back before stopping.”</p>
+          <div class="pair">
+            <div>
+              <div class="lbl" style="font-family:var(--mono);font-size:11px;color:var(--muted)">ego</div>
+              <video controls preload="metadata" src="out/placement_smoke/005646__x-0.16_z2.27_yaw1.75/ego.mp4"></video>
+            </div>
+            <div>
+              <div class="lbl" style="font-family:var(--mono);font-size:11px;color:var(--muted)">view3d</div>
+              <video controls preload="metadata" src="out/placement_smoke/005646__x-0.16_z2.27_yaw1.75/view3d.mp4"></video>
+            </div>
+          </div>
+          <img alt="topdown 005646" src="out/placement_smoke/005646__x-0.16_z2.27_yaw1.75/topdown.png" />
+        </article>
+
+        <article class="clip">
+          <h3>M003087 — turn in place</h3>
+          <div class="meta">path 2.32 m · 186 fr · xz (−0.18, 2.24) · yaw 4.87 · 8/600 poses</div>
+          <p>“a person walks forward, turns around in a clockwise direction on thier right foot, then walks forward again.”</p>
+          <div class="pair">
+            <div>
+              <div class="lbl" style="font-family:var(--mono);font-size:11px;color:var(--muted)">ego</div>
+              <video controls preload="metadata" src="out/placement_smoke/M003087__x-0.18_z2.24_yaw4.87/ego.mp4"></video>
+            </div>
+            <div>
+              <div class="lbl" style="font-family:var(--mono);font-size:11px;color:var(--muted)">view3d</div>
+              <video controls preload="metadata" src="out/placement_smoke/M003087__x-0.18_z2.24_yaw4.87/view3d.mp4"></video>
+            </div>
+          </div>
+          <img alt="topdown M003087" src="out/placement_smoke/M003087__x-0.18_z2.24_yaw4.87/topdown.png" />
+        </article>
+      </div>
+
+      <article class="clip" style="margin-top:16px">
+        <h3>M012662 — sit then walk</h3>
+        <div class="meta">path 1.42 m · 246 fr · xz (−0.01, 2.17) · yaw 4.86 · 8/600 poses</div>
+        <p>“the person sits down and places their hands on their lap, then gets up and walks left.” Sitting is geometrically free but semantically chair-less.</p>
+        <div class="pair">
+          <div>
+            <video controls preload="metadata" src="out/placement_smoke/M012662__x-0.01_z2.17_yaw4.86/ego.mp4"></video>
+          </div>
+          <div>
+            <video controls preload="metadata" src="out/placement_smoke/M012662__x-0.01_z2.17_yaw4.86/view3d.mp4"></video>
+          </div>
+        </div>
+      </article>
+
+      <h3 id="compare">TRUMANS original vs rendered ego</h3>
+      <p>
+        Same take <code>2023-01-17@00-33-01</code>. Left is the dataset exocentric
+        <code>video_render</code> (<code>ref.mp4</code>). Right is the head-attached
+        blend-tier Cycles render. Different cameras by design — this is the QC pair
+        from <code>ego/make_video.py</code>.
+      </p>
+      <div class="pair">
+        <div>
+          <div class="lbl" style="font-family:var(--mono);font-size:11px;color:var(--muted)">TRUMANS video_render (ref.mp4)</div>
+          <video controls preload="metadata" src="out/ego/2023-01-17@00-33-01/ego/ref.mp4"></video>
+        </div>
+        <div>
+          <div class="lbl" style="font-family:var(--mono);font-size:11px;color:var(--muted)">rendered ego (blend)</div>
+          <video controls preload="metadata" src="out/ego/2023-01-17@00-33-01/ego/ego.mp4"></video>
+        </div>
+      </div>
+
+      <h3>VGGT-Ω on that ego</h3>
+      <div class="lbl" style="font-family:var(--mono);font-size:11px;color:var(--muted)">recon.mp4 — top-down 3D | depth | conf-filtered RGB</div>
+      <video controls preload="metadata" src="out/ego/2023-01-17@00-33-01/ego/vggt_omega/recon.mp4"></video>
+      <p class="note" style="margin-top:12px">
+        Do not use hallway folders (<code>z ≈ −3.5…−4.2</code>) or the earlier table-crossing
+        in-room dirs (<code>002838</code>, <code>M011081</code>, <code>006325</code>).
+        Media lives under <code>out/</code> (gitignored); open this file from the repo root.
+      </p>
+    </section>
+
+    <section id="scale">
+      <h2>How big can this dataset get?</h2>
+      <p>
+        Not 27k clips × 688 sequences. Placement is per <strong>unique mesh</strong> (~100 TRUMANS scenes).
+        This room’s diameter kills long walks.
+      </p>
+      <table>
+        <thead><tr><th>Recipe</th><th>Per furnished room like this</th><th>× ~100 scenes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Locomotion, 1 pose / clip (smoke recipe)</td>
+            <td>~10² clips (7.5% of 4–10 s walks here)</td>
+            <td>~10k–100k</td>
+          </tr>
+          <tr>
+            <td>Same, keep several SE(2) poses</td>
+            <td>~10²–10³ tuples</td>
+            <td>maybe 2–5×</td>
+          </tr>
+          <tr>
+            <td>Any geometrically free HML3D (wave, stand, mid-air sit)</td>
+            <td>~10⁴–10⁵</td>
+            <td>10⁶+, mostly junk</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Real caps: path length vs room, semantics (chairs/stairs/objects), and Blender time
+        if every tuple needs ego RGB. HUMANISE-scale loco placement is the honest target.
+      </p>
+    </section>
+
+    <section id="next">
+      <h2>Next (not built)</h2>
+      <ol>
+        <li>Scale placement across scenes; keep only short loco; diversity on yaw / start cell.</li>
+        <li>VGGT-Ω encode accepted ego videos (registers already defined on the original take).</li>
+        <li>Cross-attention scene condition on the ActionPlan denoiser. Optional third “scene plan” stream was discussed and deferred.</li>
+        <li>Closed-loop render → VGGT rollout: deferred.</li>
+        <li>Do not convert TRUMANS SMPL-X to 272 until placement data is clearly useful.</li>
+      </ol>
+    </section>
+
+    <section id="run">
+      <h2>Run</h2>
+      <p>Env: <code>source /mnt/lustre/work/ponsmoll/pba794/venvs/pytorch-env/bin/activate</code>. Blender 3.6.9. Inside tmux <code>gpu</code>:</p>
+      <pre style="background:var(--card);border:1px solid var(--line);padding:12px;overflow:auto;font-family:var(--mono);font-size:12px;">cd /mnt/lustre/work/ponsmoll/pba794/project0
+python place/run_smoke.py --skip-ego --skip-view3d --n-clips 40 --n-candidates 600 --n-keep 3
+python place/finish_smoke.py   # blend-tier ego, full clip, 15 fps</pre>
+      <h3>Layout</h3>
+      <table>
+        <thead><tr><th>Path</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><code>ego/</code></td><td>Head camera, Blender, VGGT-Ω</td></tr>
+          <tr><td><code>place/</code></td><td>Occupancy, HML3D select, SE(2) search, viz</td></tr>
+          <tr><td><code>prepare/</code></td><td>TRUMANS download + full-dataset ego orchestrator</td></tr>
+          <tr><td><code>data/</code></td><td>TRUMANS (gitignored)</td></tr>
+          <tr><td><code>out/ego/</code></td><td>Original-take ego + VGGT</td></tr>
+          <tr><td><code>out/placement_smoke/</code></td><td>Accepted / rejected tuples</td></tr>
+          <tr><td><code>ActionPlan_info/</code></td><td>Paper / thesis; code lives in condmdi_smpl</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <footer>
+    project0 · ActionPlan scene conditioning via TRUMANS ego and HML3D placement.
+    Open locally from the repo root so <code>out/</code> media resolves.
+  </footer>
+</body>
+</html>
