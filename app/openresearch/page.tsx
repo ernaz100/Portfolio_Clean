@@ -13,7 +13,7 @@ const projects = [
     description:
       "Place HumanML3D-272 locomotion into TRUMANS rooms, render head-camera ego, and encode the scene with VGGT-Ω.",
     status: "Placement smoke",
-    href: "/openresearch/project0",
+    href: "/openresearch/project0/",
   },
 ];
 
