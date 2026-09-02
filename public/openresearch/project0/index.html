@@ -4,7 +4,7 @@
   <base href="/openresearch/project0/" />
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>project0 — scene-aware ActionPlan</title>
+  <title>project0 — ego text + ActionPlan prior</title>
   <style>
     :root {
       --ink: #1c1914;
@@ -190,16 +190,18 @@
 </head>
 <body>
   <header>
-    <div class="kicker">project0 · updated 28 Aug 2026</div>
+    <div class="kicker">project0 · updated 2 Sep 2026</div>
     <h1>Scene-aware ActionPlan</h1>
     <p>
-      Make ActionPlan navigation-aware using TRUMANS rooms and VGGT-Ω scene latents.
-      First concrete deliverable: HUMANISE-style rejection placement of HumanML3D-272
-      locomotion into one TRUMANS scene, with ego + 3D visualization.
+      Egocentric vision plus a text goal (“walk to the table”), using ActionPlan as an
+      AMASS/HML3D-272 motion prior. Placement into one TRUMANS room was a diagnostic,
+      not the training recipe. First experiment (D): fine-tune that prior with frozen
+      VGGT-Ω on native TRUMANS windows.
     </p>
     <nav>
       <a href="#status">Status</a>
       <a href="#goal">Goal</a>
+      <a href="#thesis">Thesis</a>
       <a href="#assumptions">Assumptions</a>
       <a href="#approach">Approach</a>
       <a href="#decisions">Decisions</a>
@@ -211,10 +213,10 @@
       <a href="#run">Run</a>
     </nav>
     <div class="status" id="status">
-      <div class="pill"><div class="lbl">Phase</div><div class="val">Placement smoke (done)</div></div>
+      <div class="pill"><div class="lbl">Phase</div><div class="val">Placement = diagnostic (done)</div></div>
       <div class="pill"><div class="lbl">Scene</div><div class="val">00add26c… / 2023-01-17@00-33-01</div></div>
-      <div class="pill"><div class="lbl">Accepted clips</div><div class="val ok">3 in-room, textured ego</div></div>
-      <div class="pill"><div class="lbl">Not started</div><div class="val warn">VGGT condition · denoiser</div></div>
+      <div class="pill"><div class="lbl">Accepted clips</div><div class="val ok">3 in-room, not a train set</div></div>
+      <div class="pill"><div class="lbl">Not started</div><div class="val warn">D: ActionPlan + VGGT on TRUMANS</div></div>
     </div>
   </header>
 
@@ -222,24 +224,84 @@
     <section id="goal">
       <h2>Goal</h2>
       <p>
-        ActionPlan (condmdi_smpl) already denoises a dual stream: sequence CLIP text plus a dense
-        per-frame action-plan. It does not see geometry. The long-term bet is to add a
-        <strong>scene latent</strong> from VGGT-Ω run on egocentric TRUMANS video, so generated
-        locomotion stays inside real rooms instead of an empty floor.
+        ActionPlan (condmdi_smpl) already denoises sequence CLIP text plus a dense per-frame
+        action-plan on empty-floor HML3D-272. It does not see geometry. The bet is a
+        <strong>receding-horizon</strong> loop: persistent goal text
+        <em>c</em> (“walk to the table”), frozen VGGT-Ω tokens
+        <em>s<sub>k</sub></em> from a short ego window, and a motion chunk
+        <em>x<sub>k</sub></em> from the ActionPlan prior — not a god’s-eye BEV, not a painted
+        sphere, not a full-clip action-plan <em>y</em>.
       </p>
       <p>
-        We did not start by training. We first asked whether we can even
-        <em>place existing HML3D motions into a TRUMANS room</em> without walking through
-        tables or leaking into mesh artifacts. That smoke test is what exists today.
+        Placement smoke (Track B) asked whether we can plant an HML3D walk in a TRUMANS
+        room. That test is done. It is <strong>not</strong> the train set: planted captions
+        are not about that room, and rejection sampling is not how CLOPS avoids furniture.
+        Train data for D is native TRUMANS (text + ego + motion converted to 272).
+      </p>
+    </section>
+
+    <section id="thesis">
+      <h2>SceMoS vs CLOPS vs us</h2>
+      <p>
+        <a href="/openresearch/project0/media/papers/2602.20476_SceMoS.pdf">SceMoS</a> is text-to-scene interaction from an
+        omniscient bird’s-eye RGB (DINOv2) plus a local heightmap. The couch is always in
+        the image; the avatar never has to look for it.
+        <a href="/openresearch/project0/media/papers/2509.19259_Moving_by_Looking.pdf">CLOPS</a> is ego depth + GT segmentation,
+        but the goal is a red sphere with an explicit mask — positioning, not language.
+      </p>
+      <table>
+        <thead><tr><th></th><th>Goal</th><th>Scene sensor</th><th>Motion</th><th>Non-penetration</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>SceMoS</td>
+            <td>Text (“walk to the couch”)</td>
+            <td>BEV + heightmap (full room)</td>
+            <td>VQ tokens on TRUMANS</td>
+            <td>Imitation + heightmap decoder</td>
+          </tr>
+          <tr>
+            <td>CLOPS</td>
+            <td>Sphere mask</td>
+            <td>Ego 64×64 depth/seg</td>
+            <td>Frozen AMASS prior, Q on head targets</td>
+            <td>Simulator <code>−r<sub>c</sub></code> on mesh overlap</td>
+          </tr>
+          <tr>
+            <td>Us (D, now)</td>
+            <td>Text (“walk to the table”)</td>
+            <td>Ego VGGT-Ω (partial)</td>
+            <td>ActionPlan prior, fine-tune with <em>s<sub>k</sub></em></td>
+            <td>Imitate TRUMANS GT windows</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        CLOPS does <strong>not</strong> learn “don’t walk through tables” from clean mocap.
+        The AMASS prior can penetrate. After each 1&nbsp;s head-target action they overlap
+        SMPL with the Replica mesh and subtract a collision penalty. Episodes do not stop
+        on a hit. The policy only sees ego pixels; the <em>reward</em> sees oracle geometry.
+        They considered rendering TRUMANS-style ego–motion pairs and rejected it (domain
+        gap, AMASS has no scene, demonstrations don’t search). We start with those pairs
+        anyway because we have text goals and need to know whether VGGT cross-attention
+        is used at all. Look-around and online <code>r<sub>c</sub></code> stay in the backlog
+        (C, then RL).
+      </p>
+      <p class="note">
+        A 1&nbsp;s CLIP action latent (“turn left”) is not in the loop. The last paper’s
+        <em>y<sub>1:N</sub></em> was a full-clip timeline; the receding horizon already
+        supplies “when.” CLIP does not constrain how far to turn or how to miss a chair.
       </p>
     </section>
 
     <section id="assumptions">
       <h2>Assumptions</h2>
       <ol>
-        <li>Scene conditioning is <strong>extra</strong> (cross-attention), not a replacement for the dual-stream RF model.</li>
-        <li>Train data should be HML3D-272 placed into TRUMANS, not a first conversion of TRUMANS SMPL-X → 272.</li>
-        <li>272 features decode with <code>condmdi_smpl/src/tools/streamer272_feats.py</code> (Y-up). The copy under <code>prepare/amasstools/</code> has the wrong layout and produces garbage scale.</li>
+        <li>Scene tokens enter by <strong>cross-attention</strong> into the ActionPlan denoiser. Track D drops the per-frame action-plan stream <em>y</em> (mask or ignore). Dual-stream ActionPlan remains the scene-free paper.</li>
+        <li>Train D on <strong>native TRUMANS</strong> converted to 272, not planted HML3D. Placement is a finished diagnostic.</li>
+        <li>SMPL-X → 272 uses the Xiao pipeline (<a href="https://github.com/Li-xingXiao/272-dim-Motion-Representation">272-dim-Motion-Representation</a>), <strong>rotation recovery</strong> not IK. 22-joint body; hands/face dropped. Decode with <code>condmdi_smpl/src/tools/streamer272_feats.py</code> (Y-up). The copy under <code>prepare/amasstools/</code> has the wrong layout and produces garbage scale.</li>
+        <li>Xiao <code>face_z</code> is a local canonical frame for the feature window only. Do not rotate the scene mesh. Ego VGGT is already camera-centric. Keep the window’s start root in world so the body can be dropped back for render / collision.</li>
+        <li>VGGT-Ω is frozen. Teacher-force first: each window’s <em>s<sub>k</sub></em> comes from GT ego, not from the previous generated chunk.</li>
+        <li>No SceMoS BEV as an input (oracle ablation only).</li>
         <li>Lived space is the original actor’s root trajectory, not the entire watertight Scene_mesh AABB (that AABB includes a leaky hallway).</li>
         <li>GPU work runs in tmux session <code>gpu</code> (A100). Do not render on the login node.</li>
         <li>Ego that should look like TRUMANS uses the textured <code>.blend</code>, Blender 3.6.9. Mesh-tier OBJ is untextured clay and was only a crash fallback.</li>
@@ -248,7 +310,10 @@
 
     <section id="approach">
       <h2>Approach</h2>
-      <p>Two tracks. Track A is infrastructure. Track B is the smoke test we actually closed.</p>
+      <p>
+        Track A is ego/VGGT infrastructure (exists). Track B is the placement diagnostic
+        (closed; not scaled). Track D is the first training experiment (not built).
+      </p>
 
       <h3>Track A — TRUMANS ego → VGGT-Ω</h3>
       <div class="flow">
@@ -268,7 +333,7 @@
         and a VGGT-Ω pass (<code>recon.mp4</code>, <code>scene.glb</code>).
       </p>
 
-      <h3>Track B — HML3D rejection placement (smoke)</h3>
+      <h3>Track B — HML3D rejection placement (diagnostic, done)</h3>
       <div class="flow">
         <div class="node"><div class="kind">dataset</div><h4>HML3D-272</h4><div class="path">23,384 train clips</div></div>
         <div class="arrow">→</div>
@@ -284,7 +349,34 @@
         then the largest connected component. Search samples open-floor cells
         (distance transform ≥ 0.18 m), not the path centroid (that sits on the coffee table).
         Hard constraint: root path stays in free space. Torso-vs-mesh is scored, not used
-        as a hard reject (pelvis sits above table tops).
+        as a hard reject (pelvis sits above table tops). We will not grow this into a
+        dataset: 7.5% accept in a tight room is the method working as designed, not a
+        path to CLOPS-style non-penetration.
+      </p>
+
+      <h3>Track D — first experiment (not built)</h3>
+      <p>
+        Convert TRUMANS SMPL-X → 272, initialize the denoiser from ActionPlan, add VGGT
+        cross-attention, teacher-force ~1&nbsp;s windows. TRUMANS teaches <em>reading the room</em>;
+        AMASS/HML3D inside ActionPlan already taught <em>how to walk</em>. Frozen TAE unless
+        reconstruction on TRUMANS-272 is visibly wrong. Frozen VGGT.
+      </p>
+      <div class="flow">
+        <div class="node"><div class="kind">data</div><h4>TRUMANS SMPL-X</h4><div class="path">data/ + Actions/*.txt</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">convert</div><h4>272 rotation recover</h4><div class="path">Xiao 272-dim repo</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">condition</div><h4>c + s<sub>k</sub></h4><div class="path">CLIP text · VGGT registers</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">prior</div><h4>ActionPlan RF</h4><div class="path">condmdi_smpl init</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">out</div><h4>chunk x<sub>k</sub></h4><div class="path">~1 s motion</div></div>
+      </div>
+      <p>
+        Teacher forcing: every window’s ego / VGGT / history come from the recorded take,
+        not from the model’s last sample. Closed-loop render → re-encode is later.
+        Success for D: table <em>in view</em> → approach or turn, not walk through it.
+        Off-screen search is not required to pass D.
       </p>
     </section>
 
@@ -294,8 +386,24 @@
         <thead><tr><th>Choice</th><th>Why</th></tr></thead>
         <tbody>
           <tr>
-            <td>Place HML3D into TRUMANS, don’t convert TRUMANS→272 first</td>
-            <td>Text + TAE already exist on HML3D-272. Scene alignment is the new problem.</td>
+            <td>ActionPlan as frozen-init prior, not train-from-scratch on TRUMANS</td>
+            <td>15 h of indoor motion should not replace AMASS walking quality. D only adds a VGGT slot.</td>
+          </tr>
+          <tr>
+            <td>Convert TRUMANS SMPL-X → 272 (Xiao, rotation recover)</td>
+            <td>ActionPlan/MoLingo live in 272. Inverse of <code>streamer272_to_smpl</code> we already use to decode.</td>
+          </tr>
+          <tr>
+            <td>HML3D placement is diagnostic only — do not scale</td>
+            <td>Captions are not “walk to the table” in that room. Rejection sampling ≠ CLOPS <code>r<sub>c</sub></code>.</td>
+          </tr>
+          <tr>
+            <td>No 1 s CLIP action latent in the ego loop</td>
+            <td>Full-clip <em>y</em> was for compositional T2M. A “turn left” vector does not bind geometry.</td>
+          </tr>
+          <tr>
+            <td>Geometric target (C) after D, then optional RL</td>
+            <td>CLOPS action space is a head/root target. Need a steerable prior before Q-learning. Vanilla ActionPlan cannot see furniture; D first.</td>
           </tr>
           <tr>
             <td>Surface voxelization, not filled watertight</td>
@@ -368,8 +476,9 @@
     </section>
 
     <section id="results">
-      <h2>Results — one scene smoke</h2>
+      <h2>Results — placement diagnostic (one scene)</h2>
       <p>
+        Record of Track B, not training data for D.
         Target: sequence <code>2023-01-17@00-33-01</code>, scene
         <code>00add26c-7a26-4a61-b192-b97aa493b3f3</code>.
         Mesh bounds ≈ 3.5 × 3.3 × 12.5 m; lived room
@@ -463,19 +572,25 @@
     <section id="scale">
       <h2>How big can this dataset get?</h2>
       <p>
-        Not 27k clips × 688 sequences. Placement is per <strong>unique mesh</strong> (~100 TRUMANS scenes).
-        This room’s diameter kills long walks.
+        The table below was written when we still thought planted HML3D was the train
+        set. <strong>That recipe is not the plan.</strong> D trains on native TRUMANS
+        windows (~15 h, ~100 scenes, one trajectory per take). Scale comes from
+        ActionPlan’s AMASS/HML3D prior, not from multiplying SE(2) poses of canned walks.
+      </p>
+      <p>
+        Placement numbers remain as a record of the diagnostic: not 27k clips × 688
+        sequences; per unique mesh (~100 rooms). This room’s diameter kills long walks.
       </p>
       <table>
         <thead><tr><th>Recipe</th><th>Per furnished room like this</th><th>× ~100 scenes</th></tr></thead>
         <tbody>
           <tr>
-            <td>Locomotion, 1 pose / clip (smoke recipe)</td>
+            <td>Locomotion, 1 pose / clip (smoke recipe) — not used for D</td>
             <td>~10² clips (7.5% of 4–10 s walks here)</td>
             <td>~10k–100k</td>
           </tr>
           <tr>
-            <td>Same, keep several SE(2) poses</td>
+            <td>Same, keep several SE(2) poses — not used for D</td>
             <td>~10²–10³ tuples</td>
             <td>maybe 2–5×</td>
           </tr>
@@ -487,19 +602,32 @@
         </tbody>
       </table>
       <p>
-        Real caps: path length vs room, semantics (chairs/stairs/objects), and Blender time
-        if every tuple needs ego RGB. HUMANISE-scale loco placement is the honest target.
+        Real caps if we had scaled placement: path length vs room, semantics, Blender time.
+        We are not scaling it.
       </p>
     </section>
 
     <section id="next">
       <h2>Next (not built)</h2>
       <ol>
-        <li>Scale placement across scenes; keep only short loco; diversity on yaw / start cell.</li>
-        <li>VGGT-Ω encode accepted ego videos (registers already defined on the original take).</li>
-        <li>Cross-attention scene condition on the ActionPlan denoiser. Optional third “scene plan” stream was discussed and deferred.</li>
-        <li>Closed-loop render → VGGT rollout: deferred.</li>
-        <li>Do not convert TRUMANS SMPL-X to 272 until placement data is clearly useful.</li>
+        <li>
+          <strong>D (now):</strong> TRUMANS SMPL-X → 272 (Xiao rotation recover). Teacher-forced
+          windows: CLIP <em>c</em> from <code>data/Actions/*.txt</code>, frozen VGGT-Ω
+          <em>s<sub>k</sub></em> from existing ego, ActionPlan init, no <em>y</em> stream.
+          Open-loop eval vs GT chunk. Table-in-view is the pass condition.
+        </li>
+        <li>A few closed-loop render → VGGT steps on one room once D open-loop is sane (still not RL).</li>
+        <li>
+          <strong>Backlog C:</strong> freeze the D-adapted prior; diffuse a geometric target
+          (head and/or root SE(2) at +<em>T</em>). CLOPS-style steering interface.
+        </li>
+        <li>
+          <strong>Backlog RL:</strong> Q/PPO on that frozen target with CLOPS
+          <code>−r<sub>c</sub></code> (SMPL vs <code>Scene_mesh</code>) plus named object near
+          and in FOV. Cheap depth/mesh in the inner loop, not Cycles+VGGT. Randomized spawn
+          and which object <em>c</em> names. Do not terminate on collision.
+        </li>
+        <li>Do not scale HML3D placement. SceMoS BEV only as an oracle ablation. 272 will not keep TRUMANS hand HSI.</li>
       </ol>
     </section>
 
@@ -519,14 +647,15 @@ python place/finish_smoke.py   # blend-tier ego, full clip, 15 fps</pre>
           <tr><td><code>data/</code></td><td>TRUMANS (gitignored)</td></tr>
           <tr><td><code>out/ego/</code></td><td>Original-take ego + VGGT</td></tr>
           <tr><td><code>out/placement_smoke/</code></td><td>Accepted / rejected tuples</td></tr>
+          <tr><td><code>papers/</code></td><td>CLOPS + SceMoS PDFs</td></tr>
           <tr><td><code>ActionPlan_info/</code></td><td>Paper / thesis; code lives in condmdi_smpl</td></tr>
         </tbody>
       </table>
     </section>
   </main>
   <footer>
-    project0 · ActionPlan scene conditioning via TRUMANS ego and HML3D placement.
-    Open locally from the repo root so <code>out/</code> media resolves.
+    project0 · ActionPlan prior + ego VGGT + text goal on native TRUMANS.
+    Placement smoke is a diagnostic. Open locally from the repo root so <code>out/</code> media resolves.
   </footer>
 </body>
 </html>
