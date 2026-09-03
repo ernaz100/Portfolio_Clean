@@ -190,7 +190,7 @@
 </head>
 <body>
   <header>
-    <div class="kicker">project0 · updated 2 Sep 2026</div>
+    <div class="kicker">project0 · updated 3 Sep 2026</div>
     <h1>Scene-aware ActionPlan</h1>
     <p>
       Egocentric vision plus a text goal (“walk to the table”), using ActionPlan as an
@@ -216,7 +216,8 @@
       <div class="pill"><div class="lbl">Phase</div><div class="val">Placement = diagnostic (done)</div></div>
       <div class="pill"><div class="lbl">Scene</div><div class="val">00add26c… / 2023-01-17@00-33-01</div></div>
       <div class="pill"><div class="lbl">Accepted clips</div><div class="val ok">3 in-room, not a train set</div></div>
-      <div class="pill"><div class="lbl">Not started</div><div class="val warn">D: ActionPlan + VGGT on TRUMANS</div></div>
+      <div class="pill"><div class="lbl">D code</div><div class="val">ActionPlan-Code in this repo</div></div>
+      <div class="pill"><div class="lbl">D data</div><div class="val ok">73 ego-covered windows</div></div>
     </div>
   </header>
 
@@ -224,7 +225,7 @@
     <section id="goal">
       <h2>Goal</h2>
       <p>
-        ActionPlan (condmdi_smpl) already denoises sequence CLIP text plus a dense per-frame
+        ActionPlan already denoises sequence CLIP text plus a dense per-frame
         action-plan on empty-floor HML3D-272. It does not see geometry. The bet is a
         <strong>receding-horizon</strong> loop: persistent goal text
         <em>c</em> (“walk to the table”), frozen VGGT-Ω tokens
@@ -298,7 +299,7 @@
       <ol>
         <li>Scene tokens enter by <strong>cross-attention</strong> into the ActionPlan denoiser. Track D drops the per-frame action-plan stream <em>y</em> (mask or ignore). Dual-stream ActionPlan remains the scene-free paper.</li>
         <li>Train D on <strong>native TRUMANS</strong> converted to 272, not planted HML3D. Placement is a finished diagnostic.</li>
-        <li>SMPL-X → 272 uses the Xiao pipeline (<a href="https://github.com/Li-xingXiao/272-dim-Motion-Representation">272-dim-Motion-Representation</a>), <strong>rotation recovery</strong> not IK. 22-joint body; hands/face dropped. Decode with <code>condmdi_smpl/src/tools/streamer272_feats.py</code> (Y-up). The copy under <code>prepare/amasstools/</code> has the wrong layout and produces garbage scale.</li>
+        <li>SMPL-X → 272 uses the Xiao pipeline (<a href="https://github.com/Li-xingXiao/272-dim-Motion-Representation">272-dim-Motion-Representation</a>), <strong>rotation recovery</strong> not IK. 22-joint body; hands/face dropped. Encode/decode live in <code>ActionPlan-Code/src/tools/streamer272_feats.py</code> (Y-up). The copy under <code>prepare/amasstools/</code> has the wrong layout and produces garbage scale.</li>
         <li>Xiao <code>face_z</code> is a local canonical frame for the feature window only. Do not rotate the scene mesh. Ego VGGT is already camera-centric. Keep the window’s start root in world so the body can be dropped back for render / collision.</li>
         <li>VGGT-Ω is frozen. Teacher-force first: each window’s <em>s<sub>k</sub></em> comes from GT ego, not from the previous generated chunk.</li>
         <li>No SceMoS BEV as an input (oracle ablation only).</li>
@@ -312,7 +313,7 @@
       <h2>Approach</h2>
       <p>
         Track A is ego/VGGT infrastructure (exists). Track B is the placement diagnostic
-        (closed; not scaled). Track D is the first training experiment (not built).
+        (closed; not scaled). Track D lives in the cloned <code>ActionPlan-Code/</code> tree.
       </p>
 
       <h3>Track A — TRUMANS ego → VGGT-Ω</h3>
@@ -354,21 +355,22 @@
         path to CLOPS-style non-penetration.
       </p>
 
-      <h3>Track D — first experiment (not built)</h3>
+      <h3>Track D — first experiment (in ActionPlan-Code)</h3>
       <p>
         Convert TRUMANS SMPL-X → 272, initialize the denoiser from ActionPlan, add VGGT
         cross-attention, teacher-force ~1&nbsp;s windows. TRUMANS teaches <em>reading the room</em>;
         AMASS/HML3D inside ActionPlan already taught <em>how to walk</em>. Frozen TAE unless
-        reconstruction on TRUMANS-272 is visibly wrong. Frozen VGGT.
+        reconstruction on TRUMANS-272 is visibly wrong. Frozen VGGT. Code is in
+        <code>ActionPlan-Code/</code>, not a parallel <code>d/</code> package.
       </p>
       <div class="flow">
         <div class="node"><div class="kind">data</div><h4>TRUMANS SMPL-X</h4><div class="path">data/ + Actions/*.txt</div></div>
         <div class="arrow">→</div>
-        <div class="node"><div class="kind">convert</div><h4>272 rotation recover</h4><div class="path">Xiao 272-dim repo</div></div>
+        <div class="node"><div class="kind">convert</div><h4>272 rotation recover</h4><div class="path">prepare/trumans_smplx_to_272.py</div></div>
         <div class="arrow">→</div>
         <div class="node"><div class="kind">condition</div><h4>c + s<sub>k</sub></h4><div class="path">CLIP text · VGGT registers</div></div>
         <div class="arrow">→</div>
-        <div class="node"><div class="kind">prior</div><h4>ActionPlan RF</h4><div class="path">condmdi_smpl init</div></div>
+        <div class="node"><div class="kind">prior</div><h4>ActionPlan RF</h4><div class="path">init_from last.ckpt + scene attn</div></div>
         <div class="arrow">→</div>
         <div class="node"><div class="kind">out</div><h4>chunk x<sub>k</sub></h4><div class="path">~1 s motion</div></div>
       </div>
@@ -608,13 +610,13 @@
     </section>
 
     <section id="next">
-      <h2>Next (not built)</h2>
+      <h2>Next</h2>
       <ol>
         <li>
-          <strong>D (now):</strong> TRUMANS SMPL-X → 272 (Xiao rotation recover). Teacher-forced
-          windows: CLIP <em>c</em> from <code>data/Actions/*.txt</code>, frozen VGGT-Ω
-          <em>s<sub>k</sub></em> from existing ego, ActionPlan init, no <em>y</em> stream.
-          Open-loop eval vs GT chunk. Table-in-view is the pass condition.
+          <strong>D (in ActionPlan-Code):</strong> convert demo take → teacher-forced windows →
+          <code>python train.py --config-name train_actionplan_d</code> (init from ActionPlan
+          <code>last.ckpt</code>, freeze backbone, train scene layers). Open-loop eval vs GT chunk.
+          Table-in-view is the pass condition.
         </li>
         <li>A few closed-loop render → VGGT steps on one room once D open-loop is sane (still not RL).</li>
         <li>
@@ -633,10 +635,13 @@
 
     <section id="run">
       <h2>Run</h2>
-      <p>Env: <code>source /mnt/lustre/work/ponsmoll/pba794/venvs/pytorch-env/bin/activate</code>. Blender 3.6.9. Inside tmux <code>gpu</code>:</p>
-      <pre style="background:var(--card);border:1px solid var(--line);padding:12px;overflow:auto;font-family:var(--mono);font-size:12px;">cd /mnt/lustre/work/ponsmoll/pba794/project0
-python place/run_smoke.py --skip-ego --skip-view3d --n-clips 40 --n-candidates 600 --n-keep 3
-python place/finish_smoke.py   # blend-tier ego, full clip, 15 fps</pre>
+      <p>Env: <code>source /mnt/lustre/work/ponsmoll/pba794/venvs/pytorch-env/bin/activate</code>. Blender 3.6.9. GPU work inside tmux <code>gpu</code>.</p>
+      <pre style="background:var(--card);border:1px solid var(--line);padding:12px;overflow:auto;font-family:var(--mono);font-size:12px;">cd /mnt/lustre/work/ponsmoll/pba794/project0/ActionPlan-Code
+python prepare/trumans_smplx_to_272.py --seq 2023-01-17@00-33-01
+python prepare/build_trumans_d_windows.py --seq 2023-01-17@00-33-01
+python train.py --config-name train_actionplan_d
+python prepare/eval_trumans_d_chunk.py --run-dir outputs/actionplan_d --n 4</pre>
+      <p>Weights: TAE + ActionPlan <code>last.ckpt</code> are read from <code>/mnt/lustre/work/ponsmoll/pba794/ActionPlan-Code</code> (the older working copy). This clone only holds the D code and TRUMANS windows.</p>
       <h3>Layout</h3>
       <table>
         <thead><tr><th>Path</th><th>Role</th></tr></thead>
@@ -648,7 +653,8 @@ python place/finish_smoke.py   # blend-tier ego, full clip, 15 fps</pre>
           <tr><td><code>out/ego/</code></td><td>Original-take ego + VGGT</td></tr>
           <tr><td><code>out/placement_smoke/</code></td><td>Accepted / rejected tuples</td></tr>
           <tr><td><code>papers/</code></td><td>CLOPS + SceMoS PDFs</td></tr>
-          <tr><td><code>ActionPlan_info/</code></td><td>Paper / thesis; code lives in condmdi_smpl</td></tr>
+          <tr><td><code>ActionPlan-Code/</code></td><td>Official ActionPlan clone; Track D convert / train / eval</td></tr>
+          <tr><td><code>ActionPlan_info/</code></td><td>Paper / thesis</td></tr>
         </tbody>
       </table>
     </section>
