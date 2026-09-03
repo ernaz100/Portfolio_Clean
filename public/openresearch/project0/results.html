@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/openresearch/project0/" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>project0 — results</title>
+  <link rel="stylesheet" href="project.css" />
+</head>
+<body>
+  <header>
+    <div class="kicker">project0 · results</div>
+    <h1>Evidence</h1>
+    <p class="lede">
+      Closed work and QC media. Phase 1 has no numbers yet. Do not treat placement
+      clips as a train set.
+    </p>
+    <nav class="site">
+      <a href="project.html">Now</a>
+      <a href="phases.html">Phases</a>
+      <a href="results.html" class="current">Results</a>
+      <a href="backlog.html">Backlog</a>
+      <a href="run.html">Run</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="grounding">
+      <h2>Phase 1 — grounding</h2>
+      <p class="note">Not started. This section is where retrieval / localization figures go.</p>
+    </section>
+
+    <section id="ego">
+      <h2>Phase 0 — ego and VGGT (done)</h2>
+      <p>
+        Take <code>2023-01-17@00-33-01</code>. Left: dataset exocentric
+        <code>video_render</code>. Right: head-attached blend-tier Cycles. Different
+        cameras by design.
+      </p>
+      <div class="pair">
+        <div>
+          <div class="lbl">TRUMANS video_render</div>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/ref.mp4"></video>
+        </div>
+        <div>
+          <div class="lbl">rendered ego (blend)</div>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/ego.mp4"></video>
+        </div>
+      </div>
+      <p style="margin-top:16px"><span class="lbl">VGGT-Ω recon.mp4</span> — top-down 3D | depth | conf-filtered RGB. Geometry checkpoint <code>vggt_omega_1b_512.pt</code>, not the text-aligned model phase 1 needs.</p>
+      <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/vggt_omega/recon.mp4"></video>
+    </section>
+
+    <section id="placement">
+      <h2>Placement diagnostic (done, not a train set)</h2>
+      <p>
+        Asked whether an HML3D walk can be planted in this room without the root
+        going through furniture. Answer: sometimes, in a tight room, 7.5% of 4–10&nbsp;s
+        walks. Captions are not about this room. Rejection sampling is not CLOPS
+        \(r_c\). Do not scale.
+      </p>
+      <p>
+        Scene <code>00add26c-7a26-4a61-b192-b97aa493b3f3</code>. Lived room
+        x ∈ [−1.20, 0.97], z ∈ [0.17, 2.66]. Open floor after furniture ≈ 2&nbsp;m².
+        40 walk clips → 13 searched @ 600 SE(2) → <strong>3 accepted</strong>.
+      </p>
+
+      <div class="grid2" style="margin-top:16px">
+        <article class="clip">
+          <h3>005646 — cleanest</h3>
+          <div class="meta">path 0.99 m · xz (−0.16, 2.27) · yaw 1.75</div>
+          <div class="pair">
+            <div>
+              <div class="lbl">ego</div>
+              <video controls preload="metadata" src="/openresearch/project0/media/placement_smoke/005646__x-0.16_z2.27_yaw1.75/ego.mp4"></video>
+            </div>
+            <div>
+              <div class="lbl">view3d</div>
+              <video controls preload="metadata" src="/openresearch/project0/media/placement_smoke/005646__x-0.16_z2.27_yaw1.75/view3d.mp4"></video>
+            </div>
+          </div>
+          <img alt="topdown 005646" src="/openresearch/project0/media/placement_smoke/005646__x-0.16_z2.27_yaw1.75/topdown.png" />
+        </article>
+        <article class="clip">
+          <h3>M003087 — turn in place</h3>
+          <div class="meta">path 2.32 m · xz (−0.18, 2.24) · yaw 4.87</div>
+          <div class="pair">
+            <div>
+              <div class="lbl">ego</div>
+              <video controls preload="metadata" src="/openresearch/project0/media/placement_smoke/M003087__x-0.18_z2.24_yaw4.87/ego.mp4"></video>
+            </div>
+            <div>
+              <div class="lbl">view3d</div>
+              <video controls preload="metadata" src="/openresearch/project0/media/placement_smoke/M003087__x-0.18_z2.24_yaw4.87/view3d.mp4"></video>
+            </div>
+          </div>
+          <img alt="topdown M003087" src="/openresearch/project0/media/placement_smoke/M003087__x-0.18_z2.24_yaw4.87/topdown.png" />
+        </article>
+      </div>
+      <article class="clip" style="margin-top:16px">
+        <h3>M012662 — sit then walk</h3>
+        <div class="meta">path 1.42 m · xz (−0.01, 2.17) · yaw 4.86</div>
+        <p>Geometrically free, semantically chair-less.</p>
+        <div class="pair">
+          <div>
+            <video controls preload="metadata" src="/openresearch/project0/media/placement_smoke/M012662__x-0.01_z2.17_yaw4.86/ego.mp4"></video>
+          </div>
+          <div>
+            <video controls preload="metadata" src="/openresearch/project0/media/placement_smoke/M012662__x-0.01_z2.17_yaw4.86/view3d.mp4"></video>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section id="failures">
+      <h2>Failures we already paid for</h2>
+      <div class="fail">
+        <strong>Hallway placements.</strong>
+        First matches sat at <code>z ≈ −3.5 to −4.2</code> — a leaky corridor, not the room.
+      </div>
+      <div class="fix">
+        Hollow voxels, GT-lived AABB, largest free component <em>inside</em> the room.
+      </div>
+      <div class="fail">
+        <strong>Walk-through-table.</strong>
+        In-room matches at the GT centroid. Chest-height occupancy missed the table.
+      </div>
+      <div class="fix">
+        Furniture band 0.35–1.20&nbsp;m. Root-in-free-space is hard. Sample open-floor cells.
+      </div>
+      <div class="fail">
+        <strong>White ego.</strong> Mesh-tier OBJ looked like clay, not TRUMANS.
+      </div>
+      <div class="fix">
+        Textured <code>.blend</code>, Blender 3.6.9, strip baked actor, add SMPL-X.
+      </div>
+      <p class="note">
+        Ignore hallway folders and early table-crossing dirs
+        (<code>002838</code>, <code>M011081</code>, <code>006325</code>).
+      </p>
+    </section>
+  </main>
+  <footer>
+    Media is under <code>out/</code> (gitignored). Open from the repo root.
+  </footer>
+</body>
+</html>

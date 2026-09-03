@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/openresearch/project0/" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>project0 — backlog</title>
+  <link rel="stylesheet" href="project.css" />
+</head>
+<body>
+  <header>
+    <div class="kicker">project0 · backlog</div>
+    <h1>Parked on purpose</h1>
+    <p class="lede">
+      Not the current phase. Do not start these because they are more fun than
+      grounding. Related papers, old Track D, and durable decisions live here.
+    </p>
+    <nav class="site">
+      <a href="project.html">Now</a>
+      <a href="phases.html">Phases</a>
+      <a href="results.html">Results</a>
+      <a href="backlog.html" class="current">Backlog</a>
+      <a href="run.html">Run</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h2>Neighbors</h2>
+      <p>
+        <a href="/openresearch/project0/media/papers/2602.20476_SceMoS.pdf">SceMoS</a> — text to scene from BEV + heightmap.
+        The couch is always in the image.
+        <a href="/openresearch/project0/media/papers/2509.19259_Moving_by_Looking.pdf">CLOPS</a> — ego vision to a
+        <em>sphere</em>, frozen AMASS prior, Q on head targets, mesh collision in the reward.
+      </p>
+      <table>
+        <thead><tr><th></th><th>Goal</th><th>Sensor</th><th>Motion</th><th>Non-penetration</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>SceMoS</td>
+            <td>Text</td>
+            <td>BEV</td>
+            <td>VQ on TRUMANS</td>
+            <td>Imitation + heightmap</td>
+          </tr>
+          <tr>
+            <td>CLOPS</td>
+            <td>Sphere mask</td>
+            <td>Ego depth/seg</td>
+            <td>Frozen AMASS, Q</td>
+            <td>Simulator <code>r<sub>c</sub></code></td>
+          </tr>
+          <tr>
+            <td>Us (phases 1–4)</td>
+            <td>Text, grounded in 3D</td>
+            <td>Ego VGGT-Ω</td>
+            <td>Frozen ActionPlan until 2</td>
+            <td>Later <code>r<sub>c</sub></code>; not from mocap</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="baseline-d">
+      <h2>Baseline D — CLIP into ActionPlan (not the method)</h2>
+      <p>
+        Code exists under <code>ActionPlan-Code/</code>: TRUMANS SMPL-X → 272, 73
+        teacher-forced windows with ego coverage, VGGT register cross-attn,
+        <code>train_actionplan_d.yaml</code>, init from ActionPlan <code>last.ckpt</code>.
+        Native <code>Actions/*.txt</code> are “pick up the vase”, not “walk to the table.”
+      </p>
+      <p>
+        Keep it as the “text embedding into the denoiser” baseline in a comparison table.
+        Do not train it as phase 1. Do not grow the window set until grounding exists.
+      </p>
+    </section>
+
+    <section>
+      <h2>After phase 4</h2>
+      <ul>
+        <li>
+          <strong><code>r<sub>c</sub></code> + PPO/Q</strong> on a frozen target: SMPL vs <code>Scene_mesh</code>,
+          named object near <em>and</em> in FOV. Cheap depth/mesh in the loop.
+          Do not terminate on collision. Randomize spawn and which object the text names.
+        </li>
+        <li>
+          <strong>Compositional language</strong> — “table next to the sofa”, “table behind you.”
+          Output \(p(g, o \mid L, I)\) over instances, not a single blob.
+        </li>
+        <li>
+          <strong>Affordances</strong> — “sit at” / “look at” / “walk around” change \(G(\mathbf{x})\).
+          First paper stays “walk to X.”
+        </li>
+        <li>
+          Held-out object names (train chair/table, test desk/cabinet) once in-view grounding is solid.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Do not do</h2>
+      <ul>
+        <li>Scale HML3D SE(2) placement. The smoke numbers were a diagnostic of room tightness.</li>
+        <li>SceMoS BEV as an input.</li>
+        <li>Fine-tune VGGT-Ω before a frozen text-aligned run fails.</li>
+        <li>Train a motion model from scratch on 15&nbsp;h of TRUMANS.</li>
+        <li>Expect 272 to keep hand–object contact.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Decisions that still hold</h2>
+      <table>
+        <thead><tr><th>Choice</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>ActionPlan as motion prior, not CLOPS code we do not run</td>
+            <td>We have the 272 RF. Phase 2 must still consume a geometric goal, not CLIP-in-denoiser.</td>
+          </tr>
+          <tr>
+            <td>Xiao 272, rotation recover, 22 joints</td>
+            <td>Encode/decode in <code>ActionPlan-Code/src/tools/streamer272_feats.py</code>. Not <code>prepare/amasstools/</code>.</td>
+          </tr>
+          <tr>
+            <td>No 1&nbsp;s CLIP action latent</td>
+            <td>Does not bind distance or furniture.</td>
+          </tr>
+          <tr>
+            <td>Lived-space AABB, not watertight mesh AABB</td>
+            <td>The mesh AABB includes a hallway at z ≈ −4&nbsp;m.</td>
+          </tr>
+          <tr>
+            <td>Blend-tier ego, Blender 3.6.9, tmux <code>gpu</code></td>
+            <td>Mesh-tier is clay. Login node has no GPU / no Cycles.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Placement scale (obsolete recipe)</h2>
+      <p>
+        Written when planted HML3D looked like the train set. It is not.
+        Per room like this, locomotion placement is ~10² clips; ×~100 scenes is still
+        the wrong dataset.
+      </p>
+    </section>
+  </main>
+  <footer>
+    If a backlog item becomes the active phase, move its pass condition onto
+    <a href="phases.html">Phases</a> and one paragraph onto <a href="project.html">Now</a>.
+  </footer>
+</body>
+</html>

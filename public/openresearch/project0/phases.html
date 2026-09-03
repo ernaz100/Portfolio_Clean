@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/openresearch/project0/" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>project0 — phases</title>
+  <link rel="stylesheet" href="project.css" />
+</head>
+<body>
+  <header>
+    <div class="kicker">project0 · phases</div>
+    <h1>Stepstones</h1>
+    <p class="lede">
+      Each phase has a goal (what to build), a purpose (why it exists), and a pass
+      condition (when we move on). Do not start the next phase because the previous
+      one “looks interesting.”
+    </p>
+    <nav class="site">
+      <a href="project.html">Now</a>
+      <a href="phases.html" class="current">Phases</a>
+      <a href="results.html">Results</a>
+      <a href="backlog.html">Backlog</a>
+      <a href="run.html">Run</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="claim">
+      <h2>Claim we are aiming at</h2>
+      <p>
+        Can a human avatar navigate toward a <em>semantically specified</em> goal from
+        egocentric vision only — no red sphere, no omniscient BEV, no privileged
+        object mask?
+      </p>
+      <p>
+        That is CLOPS with the geometric goal replaced by
+        <strong>grounding</strong>: map a phrase onto places in the observed 3D scene
+        (and later, onto a place a human should stand). The motion prior stays frozen
+        until that map exists.
+      </p>
+    </section>
+
+    <section id="infra">
+      <h2>Phase 0 — infrastructure <span class="ok">(done)</span></h2>
+      <dl class="kv">
+        <dt>Goal</dt>
+        <dd>
+          Head-attached ego RGB of a TRUMANS take, plus a VGGT-Ω reconstruction
+          (depth, cameras, register tokens). Demo:
+          <code>2023-01-17@00-33-01</code>.
+        </dd>
+        <dt>Purpose</dt>
+        <dd>
+          Later phases need a real ego stream and a 3D scene memory. This is plumbing,
+          not the paper.
+        </dd>
+        <dt>Pass</dt>
+        <dd>
+          Blend-tier ego matches the room (not clay mesh-tier). VGGT <code>recon.mp4</code>
+          is geometrically plausible. See <a href="results.html#ego">Results</a>.
+        </dd>
+      </dl>
+      <div class="flow">
+        <div class="node"><div class="kind">dataset</div><h4>TRUMANS</h4><div class="path">data/</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">process</div><h4>Head ego</h4><div class="path">ego/run_sequence.py</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">artifact</div><h4>RGB</h4><div class="path">out/ego/&lt;seq&gt;/ego/</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">process</div><h4>VGGT-Ω</h4><div class="path">ego/vggt_omega_infer.py</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">artifact</div><h4>3D + tokens</h4><div class="path">vggt_omega/</div></div>
+      </div>
+    </section>
+
+    <section id="p1">
+      <h2>Phase 1 — grounding <span class="now">(now)</span></h2>
+      <p>
+        Grounding means: the phrase refers to <em>this stuff in this scene</em> — pixels
+        or 3D points — not a CLIP vector in language space.
+      </p>
+      <div class="flow">
+        <div class="node"><div class="kind">text</div><h4>“oven”</h4><div class="path">name, not a caption essay</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">vision</div><h4>VGGT-Ω</h4><div class="path">text-aligned tokens + geometry</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">match</div><h4>s<sub>i</sub> = f<sub>t</sub>⊤ f<sub>i</sub></h4><div class="path">heatmap on points / tokens</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">out</div><h4>P<sub>object</sub></h4><div class="path">3D support of the name</div></div>
+      </div>
+      <dl class="kv">
+        <dt>Goal</dt>
+        <dd>
+          Frozen <strong>text-aligned</strong> VGGT-Ω (not only the 512 geometry checkpoint
+          we used for <code>recon.mp4</code>). Query with an object name. Output a 3D
+          heatmap or scored point set. No ActionPlan, no walking.
+        </dd>
+        <dt>Purpose</dt>
+        <dd>
+          Isolate “does the scene representation know where the named thing is?”
+          Failure here means phases 2–4 cannot honestly be called language-conditioned.
+        </dd>
+        <dt>Pass</dt>
+        <dd>
+          On the demo kitchen, for objects that are <em>in the ego window</em>
+          (oven, vase, table-like surfaces we can name from TRUMANS assets): the heatmap
+          peaks on the correct instance more often than on a random other object.
+          Report retrieval / localization, not MPJPE.
+        </dd>
+        <dt>Not yet</dt>
+        <dd>
+          Off-screen objects, “walk to”, standing pose vs tabletop, fine-tuning VGGT,
+          fine-tuning ActionPlan. Native <code>Actions/*.txt</code> lines (“pick up the vase”)
+          are interaction captions, not grounding queries — use object names.
+        </dd>
+      </dl>
+    </section>
+
+    <section id="p2">
+      <h2>Phase 2 — red-sphere equivalent</h2>
+      <dl class="kv">
+        <dt>Goal</dt>
+        <dd>
+          Turn the object support into a <strong>navigation goal</strong> \(g\): a point
+          (or small set) in free space where a person would stand for “walk to X”,
+          not the centroid of the tabletop. Feed \(g\) to a <strong>frozen</strong>
+          motion system the same way CLOPS feeds a sphere.
+        </dd>
+        <dt>Purpose</dt>
+        <dd>
+          Same controller, only the goal source changes. If this works, grounding is
+          doing the language work. If it fails, the prior/controller is the bottleneck,
+          not the heatmap. We do not have CLOPS code; ActionPlan (or a dumb walk-toward)
+          is the frozen prior. Inventing a geometric-target channel on ActionPlan is
+          allowed here; jointly training scene-attn with CLIP is not.
+        </dd>
+        <dt>Pass</dt>
+        <dd>
+          Object starts <em>in view</em>. Avatar approaches a stand-pose near the named
+          object and does not walk through it. No look-around required.
+        </dd>
+      </dl>
+      <p class="note">
+        First \(g\) can be nearest free floor cell to the heatmap with clearance.
+        Learn “where humans stand” from TRUMANS pelvis endpoints later, not in phase 1.
+      </p>
+    </section>
+
+    <section id="p3">
+      <h2>Phase 3 — drop the explicit point</h2>
+      <dl class="kv">
+        <dt>Goal</dt>
+        <dd>
+          Stop handing the controller a privileged XYZ at inference. Give it VGGT
+          features plus language (or the heatmap field \(G(\mathbf{x})\)) and a small
+          policy / a thin target head on the frozen prior.
+        </dd>
+        <dt>Purpose</dt>
+        <dd>
+          Phase 2 proves the interface. Phase 3 asks whether the explicit point was a
+          crutch. Only start this if phase 2 already reaches.
+        </dd>
+        <dt>Pass</dt>
+        <dd>
+          Reach rate on the same in-view objects is comparable to phase 2 without
+          feeding \(g\) as privileged 3D at test time.
+        </dd>
+      </dl>
+    </section>
+
+    <section id="p4">
+      <h2>Phase 4 — closed-loop search</h2>
+      <dl class="kv">
+        <dt>Goal</dt>
+        <dd>
+          \((L, I_{1:t}, M_t) \rightarrow G_t \rightarrow \pi \rightarrow\) motion
+          \(\rightarrow\) new ego frame. The named object starts <strong>off-screen</strong>.
+          The avatar looks, walks, updates the goal field, and approaches.
+        </dd>
+        <dt>Purpose</dt>
+        <dd>
+          This is the CLOPS-shaped claim. Humans do not get a sphere, and often do not
+          see the table. SceMoS never has this problem (BEV always contains the couch).
+        </dd>
+        <dt>Pass</dt>
+        <dd>
+          On held-out spawns in a known room: find and approach the named object from
+          a start pose where it is not in the first FOV, without an oracle mask.
+        </dd>
+      </dl>
+      <p>
+        Collision reward \(r_c\) (SMPL vs mesh), randomized object names, and not
+        terminating on hits belong <em>with</em> this phase or immediately after — see
+        <a href="backlog.html">Backlog</a>. Cheap depth/mesh in the inner loop, not
+        Cycles+VGGT.
+      </p>
+    </section>
+
+    <section>
+      <h2>What we are not doing in 1–4</h2>
+      <ul>
+        <li>SceMoS BEV as an input (oracle ablation only).</li>
+        <li>Scaling HML3D placement into a dataset.</li>
+        <li>A 1&nbsp;s CLIP action latent (“turn left”) as the control.</li>
+        <li>End-to-end VLM → full-body motion as the first experiment.</li>
+        <li>Sit / look / walk-around affordances as the first paper (later on backlog).</li>
+      </ul>
+    </section>
+  </main>
+  <footer>
+    Phase 1 is the only active stepstone. Everything else is ordered, not optional flavor.
+  </footer>
+</body>
+</html>

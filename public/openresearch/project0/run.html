@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/openresearch/project0/" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>project0 — run</title>
+  <link rel="stylesheet" href="project.css" />
+</head>
+<body>
+  <header>
+    <div class="kicker">project0 · run</div>
+    <h1>How to run</h1>
+    <p class="lede">
+      Env: <code>source /mnt/lustre/work/ponsmoll/pba794/venvs/pytorch-env/bin/activate</code>.
+      GPU and Blender only inside tmux <code>gpu</code>.
+    </p>
+    <nav class="site">
+      <a href="project.html">Now</a>
+      <a href="phases.html">Phases</a>
+      <a href="results.html">Results</a>
+      <a href="backlog.html">Backlog</a>
+      <a href="run.html" class="current">Run</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h2>Phase 1 (current)</h2>
+      <p>
+        Not scripted yet. Need the VGGT-Ω <strong>text-aligned</strong> checkpoint and a
+        scoring pass on the demo ego vs named objects. Geometry recon is already:
+      </p>
+      <pre class="cmd">cd /mnt/lustre/work/ponsmoll/pba794/project0
+python ego/vggt_omega_infer.py \
+  --sequence 2023-01-17@00-33-01 \
+  --checkpoint /mnt/lustre/work/ponsmoll/pba794/checkpoints/vggt_omega_1b_512.pt</pre>
+    </section>
+
+    <section>
+      <h2>Baseline D (do not prioritize)</h2>
+      <pre class="cmd">cd /mnt/lustre/work/ponsmoll/pba794/project0/ActionPlan-Code
+python prepare/trumans_smplx_to_272.py --seq 2023-01-17@00-33-01
+python prepare/build_trumans_d_windows.py --seq 2023-01-17@00-33-01
+python train.py --config-name train_actionplan_d
+python prepare/eval_trumans_d_chunk.py --run-dir outputs/actionplan_d --n 4</pre>
+      <p>
+        TAE + ActionPlan <code>last.ckpt</code> live in
+        <code>/mnt/lustre/work/ponsmoll/pba794/ActionPlan-Code</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2>Placement smoke (closed)</h2>
+      <pre class="cmd">cd /mnt/lustre/work/ponsmoll/pba794/project0
+python place/run_smoke.py --skip-ego --skip-view3d --n-clips 40 --n-candidates 600 --n-keep 3
+python place/finish_smoke.py</pre>
+    </section>
+
+    <section>
+      <h2>Layout</h2>
+      <table>
+        <thead><tr><th>Path</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><code>project.html</code> + pages</td><td>This site</td></tr>
+          <tr><td><code>ego/</code></td><td>Head camera, Blender, VGGT-Ω</td></tr>
+          <tr><td><code>place/</code></td><td>Occupancy / HML3D plant (diagnostic)</td></tr>
+          <tr><td><code>ActionPlan-Code/</code></td><td>Motion prior + baseline D</td></tr>
+          <tr><td><code>data/</code></td><td>TRUMANS (gitignored)</td></tr>
+          <tr><td><code>out/ego/</code></td><td>Demo ego + VGGT</td></tr>
+          <tr><td><code>papers/</code></td><td>CLOPS, SceMoS PDFs</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <footer>
+    When phase 1 has a command, put it at the top of this page and delete guesswork.
+  </footer>
+</body>
+</html>
