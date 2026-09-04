@@ -25,54 +25,57 @@
 
   <main>
     <section id="grounding">
-      <h2>Phase 1 — grounding (first take, 4 Sep 2026)</h2>
+      <h2>Phase 1 — grounding (full clip, 4 Sep 2026)</h2>
       <p>
-        Take <code>2023-01-17@00-33-01</code>. Frozen SAM 3 image PCS on 10 ego frames
-        (stride 30), then lift with VGGT-Ω depth already on disk. No video tracker.
-      </p>
-      <p>
-        Presence (score ≥ 0.3): <strong>oven</strong> 2/10 (frames 180, 210, peak 0.60);
-        <strong>vase</strong> 5/10 (0–120, peak 0.90); <strong>table</strong> 9/10 (peak 0.87);
-        <strong>bed</strong> 0/10, score 0. Overlay stills: oven lights the appliance,
-        vase the vessel (not the bouquet), table the coffee table and a side table,
-        bed stays empty.
+        Take <code>2023-01-17@00-33-01</code>. Frozen SAM 3 image PCS on <strong>all 300</strong>
+        ego frames (stride 1), lifted with <em>causal</em> VGGT-Ω (past-only W=25).
+        No video tracker. Stride-30 + batch-VGGT overlays stay under
+        <code>grounding/</code> as the first take.
       </p>
       <p>
-        The 3D pane is a <em>top-down</em> VGGT point map, not a new reconstruction.
-        <strong>Gray</strong> = high-confidence depth that is <em>not</em> the name.
-        Query color (orange oven, cyan vase, green table, magenta bed) = SAM 3 mask
-        pixels unprojected with that frame’s camera. The map <em>accumulates</em> as
-        the clip plays, so a blob can sit in 3D after the object has left the ego
-        window. Watch <code>summary.mp4</code>, not the old one-frame still.
+        Presence (score ≥ 0.3): <strong>oven</strong> 61/300; <strong>vase</strong> 153/300;
+        <strong>table</strong> 248/300; <strong>bed</strong> 5/300 (frames 68, 70, 75, 244, 245,
+        scores 0.30–0.42 — the stride-30 take missed these). 2D pass is still a human
+        overlay judgment. Causal 3D is emptier at the start of the clip.
       </p>
-      <p class="note">
-        Human overlay judgment on this kitchen, not a closed pass. Table is the easy
-        query (large surfaces).
+      <p>
+        <span class="lbl">latency</span> — SAM 3 on V100, four queries, backbone shared:
+        mean <strong>0.85 s/frame</strong> (p50 0.84, p95 0.85) vs 10 fps ego (100 ms budget)
+        → <strong>8.5×</strong> slower than real-time (1.18 fps). Not a dealbreaker.
       </p>
-      <p><span class="lbl">summary.mp4</span> — 2×2, left ego overlay / right accumulating 3D</p>
-      <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/summary.mp4"></video>
+      <p><span class="lbl">summary.mp4</span> — 2×2, 300 frames @ 10 fps, left ego overlay / right accumulating causal 3D</p>
+      <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding_stream/summary.mp4"></video>
       <div class="grid2" style="margin-top:16px">
         <article class="clip">
           <h3>oven</h3>
-          <div class="meta">IN VIEW 2/10 · peak 0.60</div>
-          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/oven/lift.mp4"></video>
+          <div class="meta">IN VIEW 61/300</div>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding_stream/oven/lift.mp4"></video>
         </article>
         <article class="clip">
           <h3>vase</h3>
-          <div class="meta">IN VIEW 5/10 · peak 0.90</div>
-          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/vase/lift.mp4"></video>
+          <div class="meta">IN VIEW 153/300</div>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding_stream/vase/lift.mp4"></video>
         </article>
         <article class="clip">
           <h3>table</h3>
-          <div class="meta">IN VIEW 9/10 · peak 0.87</div>
-          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/table/lift.mp4"></video>
+          <div class="meta">IN VIEW 248/300</div>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding_stream/table/lift.mp4"></video>
         </article>
         <article class="clip">
           <h3>bed (negative)</h3>
-          <div class="meta">IN VIEW 0/10 · score 0</div>
-          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/bed/lift.mp4"></video>
+          <div class="meta">IN VIEW 5/300 · weak scores</div>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding_stream/bed/lift.mp4"></video>
         </article>
       </div>
+    </section>
+
+    <section id="grounding-stride30">
+      <h2>Phase 1 — first take (stride 30, batch VGGT)</h2>
+      <p>
+        Same take, 10 frames, lifted with the bidirectional 300-frame recon.
+        Presence: oven 2/10, vase 5/10, table 9/10, bed 0/10.
+      </p>
+      <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/summary.mp4"></video>
     </section>
 
     <section id="ego">
@@ -92,7 +95,28 @@
           <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/ego.mp4"></video>
         </div>
       </div>
-      <p style="margin-top:16px"><span class="lbl">VGGT-Ω recon.mp4</span> — top-down 3D | depth | conf-filtered RGB. Geometry checkpoint <code>vggt_omega_1b_512.pt</code>. Language matching is SAM 3, not the 256-text alignment checkpoint.</p>
+      <p style="margin-top:16px">
+        <span class="lbl">Causal VGGT-Ω recon.mp4</span> — method map. Past-only windows
+        W=25, Sim(3) stitch, 1B weights. At t=0 the top-down pane is a frontal slab, not
+        the apartment. Geometry checkpoint <code>vggt_omega_1b_512.pt</code>.
+      </p>
+      <p>
+        <span class="lbl">latency</span> — A100, W=25, 512px, vs 10 fps ego (100 ms budget):
+        steady <strong>2.13 s/frame</strong> (p50 2.12, p95 2.20) → <strong>21×</strong>
+        slower than real-time (0.47 fps). Not a dealbreaker; this is the number.
+      </p>
+      <div class="pair">
+        <div>
+          <div class="lbl">t = 0</div>
+          <img alt="causal recon frame 0" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/vggt_omega_stream/recon_t000.png" />
+        </div>
+        <div>
+          <div class="lbl">t = last</div>
+          <img alt="causal recon last frame" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/vggt_omega_stream/recon_tlast.png" />
+        </div>
+      </div>
+      <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/vggt_omega_stream/recon.mp4"></video>
+      <p style="margin-top:16px"><span class="lbl">Batch oracle recon.mp4</span> — one 300-frame bidirectional forward. Privileged ablation, not the method. Language matching is SAM 3, not the 256-text alignment checkpoint.</p>
       <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/vggt_omega/recon.mp4"></video>
     </section>
 

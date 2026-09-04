@@ -28,25 +28,42 @@
     <section>
       <h2>Phase 1 (current)</h2>
       <p>
-        SAM 3 image PCS on sampled ego frames, then lift with VGGT-Ω depth already
-        on disk. Gated checkpoint: request
+        SAM 3 image PCS on the full ego clip, then lift with <em>causal</em> VGGT-Ω.
+        Gated checkpoint: request
         <a href="https://huggingface.co/facebook/sam3">facebook/sam3</a>, then
-        <code>hf auth login</code>. Run inside tmux <code>gpu</code>.
-        On V100, <code>ground_sam3.py</code> keeps SAM 3 in fp32 (fused MLP would otherwise emit bf16).
+        <code>hf auth login</code>. SAM 3 inside tmux <code>gpu</code> (V100, fp32).
+        Causal VGGT inside tmux <code>gpu2</code> (A100).
       </p>
       <pre class="cmd">cd /mnt/lustre/work/ponsmoll/pba794/project0
 source /mnt/lustre/work/ponsmoll/pba794/venvs/pytorch-env/bin/activate
 python ego/ground_sam3.py \
   --sequence 2023-01-17@00-33-01 \
   --queries oven vase table bed \
-  --frame-stride 30
-python ego/ground_viz.py --sequence 2023-01-17@00-33-01</pre>
+  --frame-stride 1 \
+  --out-dir out/ego/2023-01-17@00-33-01/ego/grounding_stream
+python ego/ground_viz.py \
+  --sequence 2023-01-17@00-33-01 \
+  --vggt-npz out/ego/2023-01-17@00-33-01/ego/vggt_omega_stream/predictions.npz \
+  --masks-dir out/ego/2023-01-17@00-33-01/ego/grounding_stream \
+  --out-dir out/ego/2023-01-17@00-33-01/ego/grounding_stream \
+  --fps 10</pre>
       <p>
-        Geometry recon (Phase 0, done):
+        Causal geometry (Phase 0 method). A100, W=25, never sees frames &gt; t:
+      </p>
+      <pre class="cmd">python ego/vggt_omega_stream.py \
+  --sequence 2023-01-17@00-33-01 \
+  --checkpoint /mnt/lustre/work/ponsmoll/pba794/checkpoints/vggt_omega_1b_512.pt \
+  --vggt-root /mnt/lustre/work/ponsmoll/pba794/vggt-omega \
+  --window-size 25</pre>
+      <p>
+        Batch oracle (ablation) and stride-30 first take:
       </p>
       <pre class="cmd">python ego/vggt_omega_infer.py \
   --sequence 2023-01-17@00-33-01 \
-  --checkpoint /mnt/lustre/work/ponsmoll/pba794/checkpoints/vggt_omega_1b_512.pt</pre>
+  --checkpoint /mnt/lustre/work/ponsmoll/pba794/checkpoints/vggt_omega_1b_512.pt \
+  --max-frames 0
+python ego/ground_sam3.py --sequence 2023-01-17@00-33-01 --frame-stride 30
+python ego/ground_viz.py --sequence 2023-01-17@00-33-01</pre>
     </section>
 
     <section>
@@ -86,7 +103,7 @@ python place/finish_smoke.py</pre>
     </section>
   </main>
   <footer>
-    Phase 1 commands are at the top. Geometry recon is Phase 0 (done).
+    Phase 1 commands are at the top. Causal geometry is Phase 0 (done). Batch VGGT is an oracle.
   </footer>
 </body>
 </html>

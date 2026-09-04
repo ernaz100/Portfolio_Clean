@@ -61,6 +61,18 @@
       </table>
     </section>
 
+    <section id="streamvggt">
+      <h2>StreamVGGT (not the method)</h2>
+      <p>
+        <a href="https://github.com/wzzheng/StreamVGGT">StreamVGGT</a> is a causal
+        KV-cache transformer. The VGGT-Ω FPV demo is not that: it is the 1B weights
+        with VGGT-Long-style overlapping chunks. We stay on
+        <code>vggt_omega_1b_512.pt</code> and change <em>when</em> frames enter
+        <code>model()</code> (<code>ego/vggt_omega_stream.py</code>). Do not train or
+        download StreamVGGT for Phase 0/1. 10B Omega is unreleased.
+      </p>
+    </section>
+
     <section id="sam3-video">
       <h2>SAM 3 video tracking (Phase 4, not now)</h2>
       <p>

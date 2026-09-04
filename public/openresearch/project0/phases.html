@@ -46,19 +46,20 @@
       <dl class="kv">
         <dt>Goal</dt>
         <dd>
-          Head-attached ego RGB of a TRUMANS take, plus a VGGT-Ω reconstruction
-          (depth, cameras, register tokens). Demo:
-          <code>2023-01-17@00-33-01</code>.
+          Head-attached ego RGB of a TRUMANS take, plus a <strong>causal</strong> VGGT-Ω
+          map (depth/cameras at time t from RGB ≤ t only). Demo:
+          <code>2023-01-17@00-33-01</code>. The 300-frame bidirectional pass stays on
+          disk as an oracle.
         </dd>
         <dt>Purpose</dt>
         <dd>
-          Later phases need a real ego stream and a 3D scene memory. This is plumbing,
-          not the paper.
+          Later phases need a real ego stream and a 3D scene memory that did not peek
+          at the rest of the kitchen. This is plumbing, not the paper.
         </dd>
         <dt>Pass</dt>
         <dd>
-          Blend-tier ego matches the room (not clay mesh-tier). VGGT <code>recon.mp4</code>
-          is geometrically plausible. See <a href="results.html#ego">Results</a>.
+          Blend-tier ego matches the room. Causal <code>recon.mp4</code> at frame 0 is a
+          frontal slab, not the full apartment. See <a href="results.html#ego">Results</a>.
         </dd>
       </dl>
       <div class="flow">
@@ -68,9 +69,9 @@
         <div class="arrow">→</div>
         <div class="node"><div class="kind">artifact</div><h4>RGB</h4><div class="path">out/ego/&lt;seq&gt;/ego/</div></div>
         <div class="arrow">→</div>
-        <div class="node"><div class="kind">process</div><h4>VGGT-Ω</h4><div class="path">ego/vggt_omega_infer.py</div></div>
+        <div class="node"><div class="kind">process</div><h4>Causal VGGT-Ω</h4><div class="path">ego/vggt_omega_stream.py</div></div>
         <div class="arrow">→</div>
-        <div class="node"><div class="kind">artifact</div><h4>3D + tokens</h4><div class="path">vggt_omega/</div></div>
+        <div class="node"><div class="kind">artifact</div><h4>Past-only 3D</h4><div class="path">vggt_omega_stream/</div></div>
       </div>
     </section>
 
@@ -87,16 +88,17 @@
         <div class="arrow">→</div>
         <div class="node"><div class="kind">match</div><h4>mask + presence</h4><div class="path">or NOT IN VIEW</div></div>
         <div class="arrow">→</div>
-        <div class="node"><div class="kind">geom</div><h4>VGGT-Ω depth</h4><div class="path">already on disk</div></div>
+        <div class="node"><div class="kind">geom</div><h4>Causal VGGT-Ω</h4><div class="path">vggt_omega_stream/</div></div>
         <div class="arrow">→</div>
         <div class="node"><div class="kind">out</div><h4>P<sub>object</sub></h4><div class="path">3D support of the name</div></div>
       </div>
       <dl class="kv">
         <dt>Goal</dt>
         <dd>
-          Frozen <strong>SAM 3</strong> (image PCS, short noun) on sampled ego frames.
-          Lift masks with the existing VGGT-Ω 512 geometry. No ActionPlan, no walking,
-          no SAM 3 video tracker.
+          Frozen <strong>SAM 3</strong> (image PCS, short noun) on the full ego clip.
+          Lift masks with <strong>causal</strong> VGGT-Ω 512 geometry. No ActionPlan, no walking,
+          no SAM 3 video tracker. The bidirectional <code>vggt_omega/</code> map is an
+          ablation, not the method.
         </dd>
         <dt>Purpose</dt>
         <dd>
