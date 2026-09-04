@@ -12,8 +12,7 @@
     <div class="kicker">project0 · results</div>
     <h1>Evidence</h1>
     <p class="lede">
-      Closed work and QC media. Phase 1 has no numbers yet. Do not treat placement
-      clips as a train set.
+      Closed work and QC media.
     </p>
     <nav class="site">
       <a href="project.html">Now</a>
@@ -26,8 +25,48 @@
 
   <main>
     <section id="grounding">
-      <h2>Phase 1 — grounding</h2>
-      <p class="note">Not started. This section is where retrieval / localization figures go.</p>
+      <h2>Phase 1 — grounding (first take, 4 Sep 2026)</h2>
+      <p>
+        Take <code>2023-01-17@00-33-01</code>. Frozen SAM 3 image PCS on 10 ego frames
+        (stride 30), then lift with VGGT-Ω depth already on disk. No video tracker.
+      </p>
+      <p>
+        Presence (score ≥ 0.3): <strong>oven</strong> 2/10 (frames 180, 210, peak 0.60);
+        <strong>vase</strong> 5/10 (0–120, peak 0.90); <strong>table</strong> 9/10 (peak 0.87);
+        <strong>bed</strong> 0/10, score 0. Overlay stills: oven lights the appliance,
+        vase the vessel (not the bouquet), table the coffee table and a side table,
+        bed stays empty. 3D: oven 51k pts, vase 935, table 80k (capped), bed 0.
+      </p>
+      <p class="note">
+        Human overlay judgment on this kitchen, not a closed pass. Table is the easy
+        query (large surfaces). Summary grid below uses each query’s middle frame, so
+        oven/vase can look empty there even when they fire elsewhere — watch the
+        per-query clips.
+      </p>
+      <p><span class="lbl">summary (mid-frame RGB | bird’s-eye lift)</span></p>
+      <img alt="grounding summary grid" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/summary.png" />
+      <div class="grid2" style="margin-top:16px">
+        <article class="clip">
+          <h3>oven</h3>
+          <div class="meta">IN VIEW 2/10 · peak 0.60</div>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/oven/overlay.mp4"></video>
+        </article>
+        <article class="clip">
+          <h3>vase</h3>
+          <div class="meta">IN VIEW 5/10 · peak 0.90</div>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/vase/overlay.mp4"></video>
+        </article>
+        <article class="clip">
+          <h3>table</h3>
+          <div class="meta">IN VIEW 9/10 · peak 0.87</div>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/table/overlay.mp4"></video>
+        </article>
+        <article class="clip">
+          <h3>bed (negative)</h3>
+          <div class="meta">IN VIEW 0/10 · score 0</div>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/bed/overlay.mp4"></video>
+        </article>
+      </div>
     </section>
 
     <section id="ego">
@@ -47,7 +86,7 @@
           <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/ego.mp4"></video>
         </div>
       </div>
-      <p style="margin-top:16px"><span class="lbl">VGGT-Ω recon.mp4</span> — top-down 3D | depth | conf-filtered RGB. Geometry checkpoint <code>vggt_omega_1b_512.pt</code>, not the text-aligned model phase 1 needs.</p>
+      <p style="margin-top:16px"><span class="lbl">VGGT-Ω recon.mp4</span> — top-down 3D | depth | conf-filtered RGB. Geometry checkpoint <code>vggt_omega_1b_512.pt</code>. Language matching is SAM 3, not the 256-text alignment checkpoint.</p>
       <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/vggt_omega/recon.mp4"></video>
     </section>
 

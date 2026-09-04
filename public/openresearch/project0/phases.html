@@ -83,22 +83,24 @@
       <div class="flow">
         <div class="node"><div class="kind">text</div><h4>“oven”</h4><div class="path">name, not a caption essay</div></div>
         <div class="arrow">→</div>
-        <div class="node"><div class="kind">vision</div><h4>VGGT-Ω</h4><div class="path">text-aligned tokens + geometry</div></div>
+        <div class="node"><div class="kind">vision</div><h4>SAM 3</h4><div class="path">frozen image PCS, not video track</div></div>
         <div class="arrow">→</div>
-        <div class="node"><div class="kind">match</div><h4>s<sub>i</sub> = f<sub>t</sub>⊤ f<sub>i</sub></h4><div class="path">heatmap on points / tokens</div></div>
+        <div class="node"><div class="kind">match</div><h4>mask + presence</h4><div class="path">or NOT IN VIEW</div></div>
+        <div class="arrow">→</div>
+        <div class="node"><div class="kind">geom</div><h4>VGGT-Ω depth</h4><div class="path">already on disk</div></div>
         <div class="arrow">→</div>
         <div class="node"><div class="kind">out</div><h4>P<sub>object</sub></h4><div class="path">3D support of the name</div></div>
       </div>
       <dl class="kv">
         <dt>Goal</dt>
         <dd>
-          Frozen <strong>text-aligned</strong> VGGT-Ω (not only the 512 geometry checkpoint
-          we used for <code>recon.mp4</code>). Query with an object name. Output a 3D
-          heatmap or scored point set. No ActionPlan, no walking.
+          Frozen <strong>SAM 3</strong> (image PCS, short noun) on sampled ego frames.
+          Lift masks with the existing VGGT-Ω 512 geometry. No ActionPlan, no walking,
+          no SAM 3 video tracker.
         </dd>
         <dt>Purpose</dt>
         <dd>
-          Isolate “does the scene representation know where the named thing is?”
+          Isolate “does SAM 3 find the named thing in this ego window?”
           Failure here means phases 2–4 cannot honestly be called language-conditioned.
         </dd>
         <dt>Pass</dt>
@@ -111,8 +113,8 @@
         <dt>Not yet</dt>
         <dd>
           Off-screen objects, “walk to”, standing pose vs tabletop, fine-tuning VGGT,
-          fine-tuning ActionPlan. Native <code>Actions/*.txt</code> lines (“pick up the vase”)
-          are interaction captions, not grounding queries — use object names.
+          fine-tuning ActionPlan, SAM 3 <em>video</em> tracking. Native <code>Actions/*.txt</code>
+          lines (“pick up the vase”) are interaction captions, not grounding queries — use object names.
         </dd>
       </dl>
     </section>

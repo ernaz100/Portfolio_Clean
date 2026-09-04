@@ -9,7 +9,7 @@
 </head>
 <body>
   <header>
-    <div class="kicker">project0 · updated 3 Sep 2026</div>
+    <div class="kicker">project0 · updated 4 Sep 2026</div>
     <h1>Language-conditioned ego navigation</h1>
     <p class="lede">
       Replace CLOPS’s painted sphere with a phrase (“walk to the table”), using only
@@ -42,13 +42,16 @@
       </p>
       <p>
         <strong>Purpose.</strong> CLOPS is told <em>where</em> to go (a sphere). We are told
-        <em>what</em> to go to. Grounding is the map from words to places. If VGGT-Ω plus
-        text cannot find the oven when it is in view, later “navigation” is not language-conditioned.
+        <em>what</em> to go to. Frozen SAM 3 marks the name in ego RGB; VGGT-Ω (already
+        on disk) lifts those pixels to 3D. If that overlay is wrong, later walking is
+        not language-conditioned.
       </p>
       <p>
         <strong>Pass.</strong> On this kitchen, a named object that is visible in the ego
         window lights up the right instance (retrieval / localization), not a random nearby
-        surface. Details and the later phases live on
+        surface. First overlays are on
+        <a href="results.html#grounding">Results</a>: oven/vase/table fire on the right
+        stuff; <code>bed</code> stays NOT IN VIEW. Details on
         <a href="phases.html">Phases</a>.
       </p>
     </div>
@@ -84,7 +87,7 @@
           <div class="n">1 now</div>
           <div>
             <h3>Grounding</h3>
-            <p>Text × VGGT-Ω → 3D heatmap. Object in view. No motion.</p>
+            <p>SAM 3 on ego RGB, lift with VGGT depth. Object in view. No motion.</p>
           </div>
         </a>
         <a class="step" href="phases.html#p2">

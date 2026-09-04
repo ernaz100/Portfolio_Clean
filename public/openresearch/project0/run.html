@@ -28,11 +28,23 @@
     <section>
       <h2>Phase 1 (current)</h2>
       <p>
-        Not scripted yet. Need the VGGT-Ω <strong>text-aligned</strong> checkpoint and a
-        scoring pass on the demo ego vs named objects. Geometry recon is already:
+        SAM 3 image PCS on sampled ego frames, then lift with VGGT-Ω depth already
+        on disk. Gated checkpoint: request
+        <a href="https://huggingface.co/facebook/sam3">facebook/sam3</a>, then
+        <code>hf auth login</code>. Run inside tmux <code>gpu</code>.
+        On V100, <code>ground_sam3.py</code> keeps SAM 3 in fp32 (fused MLP would otherwise emit bf16).
       </p>
       <pre class="cmd">cd /mnt/lustre/work/ponsmoll/pba794/project0
-python ego/vggt_omega_infer.py \
+source /mnt/lustre/work/ponsmoll/pba794/venvs/pytorch-env/bin/activate
+python ego/ground_sam3.py \
+  --sequence 2023-01-17@00-33-01 \
+  --queries oven vase table bed \
+  --frame-stride 30
+python ego/ground_viz.py --sequence 2023-01-17@00-33-01</pre>
+      <p>
+        Geometry recon (Phase 0, done):
+      </p>
+      <pre class="cmd">python ego/vggt_omega_infer.py \
   --sequence 2023-01-17@00-33-01 \
   --checkpoint /mnt/lustre/work/ponsmoll/pba794/checkpoints/vggt_omega_1b_512.pt</pre>
     </section>
@@ -74,7 +86,7 @@ python place/finish_smoke.py</pre>
     </section>
   </main>
   <footer>
-    When phase 1 has a command, put it at the top of this page and delete guesswork.
+    Phase 1 commands are at the top. Geometry recon is Phase 0 (done).
   </footer>
 </body>
 </html>

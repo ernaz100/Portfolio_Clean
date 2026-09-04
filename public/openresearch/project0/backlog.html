@@ -61,6 +61,25 @@
       </table>
     </section>
 
+    <section id="sam3-video">
+      <h2>SAM 3 video tracking (Phase 4, not now)</h2>
+      <p>
+        Image PCS on independent frames is enough to judge in-view vs NOT IN VIEW.
+        The SAM 3 video tracker / masklets belong with off-screen search (look around,
+        update \(G_t\)). Do not run 300-frame tracking to pass Phase 1.
+      </p>
+    </section>
+
+    <section id="vggt-text">
+      <h2>VGGT-Ω text alignment (not a grounder)</h2>
+      <p>
+        <code>text_alignment_embedding</code> is one L2-normalized vector per clip for
+        scene-to-caption retrieval. Registers never see patches in that head. It cannot
+        score “oven” on 3D points. Keep as a possible retrieval side channel, not the
+        Phase 1 matcher.
+      </p>
+    </section>
+
     <section id="baseline-d">
       <h2>Baseline D — CLIP into ActionPlan (not the method)</h2>
       <p>
@@ -102,7 +121,7 @@
       <ul>
         <li>Scale HML3D SE(2) placement. The smoke numbers were a diagnostic of room tightness.</li>
         <li>SceMoS BEV as an input.</li>
-        <li>Fine-tune VGGT-Ω before a frozen text-aligned run fails.</li>
+        <li>Fine-tune VGGT-Ω as a language grounder. The released alignment head is scene retrieval.</li>
         <li>Train a motion model from scratch on 15&nbsp;h of TRUMANS.</li>
         <li>Expect 272 to keep hand–object contact.</li>
       </ul>
