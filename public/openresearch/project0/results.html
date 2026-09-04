@@ -35,36 +35,42 @@
         <strong>vase</strong> 5/10 (0–120, peak 0.90); <strong>table</strong> 9/10 (peak 0.87);
         <strong>bed</strong> 0/10, score 0. Overlay stills: oven lights the appliance,
         vase the vessel (not the bouquet), table the coffee table and a side table,
-        bed stays empty. 3D: oven 51k pts, vase 935, table 80k (capped), bed 0.
+        bed stays empty.
+      </p>
+      <p>
+        The 3D pane is a <em>top-down</em> VGGT point map, not a new reconstruction.
+        <strong>Gray</strong> = high-confidence depth that is <em>not</em> the name.
+        Query color (orange oven, cyan vase, green table, magenta bed) = SAM 3 mask
+        pixels unprojected with that frame’s camera. The map <em>accumulates</em> as
+        the clip plays, so a blob can sit in 3D after the object has left the ego
+        window. Watch <code>summary.mp4</code>, not the old one-frame still.
       </p>
       <p class="note">
         Human overlay judgment on this kitchen, not a closed pass. Table is the easy
-        query (large surfaces). Summary grid below uses each query’s middle frame, so
-        oven/vase can look empty there even when they fire elsewhere — watch the
-        per-query clips.
+        query (large surfaces).
       </p>
-      <p><span class="lbl">summary (mid-frame RGB | bird’s-eye lift)</span></p>
-      <img alt="grounding summary grid" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/summary.png" />
+      <p><span class="lbl">summary.mp4</span> — 2×2, left ego overlay / right accumulating 3D</p>
+      <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/summary.mp4"></video>
       <div class="grid2" style="margin-top:16px">
         <article class="clip">
           <h3>oven</h3>
           <div class="meta">IN VIEW 2/10 · peak 0.60</div>
-          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/oven/overlay.mp4"></video>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/oven/lift.mp4"></video>
         </article>
         <article class="clip">
           <h3>vase</h3>
           <div class="meta">IN VIEW 5/10 · peak 0.90</div>
-          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/vase/overlay.mp4"></video>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/vase/lift.mp4"></video>
         </article>
         <article class="clip">
           <h3>table</h3>
           <div class="meta">IN VIEW 9/10 · peak 0.87</div>
-          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/table/overlay.mp4"></video>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/table/lift.mp4"></video>
         </article>
         <article class="clip">
           <h3>bed (negative)</h3>
           <div class="meta">IN VIEW 0/10 · score 0</div>
-          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/bed/overlay.mp4"></video>
+          <video controls preload="metadata" src="/openresearch/project0/media/ego/2023-01-17%4000-33-01/ego/grounding/bed/lift.mp4"></video>
         </article>
       </div>
     </section>
