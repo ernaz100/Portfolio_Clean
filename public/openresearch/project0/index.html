@@ -27,7 +27,7 @@
     <div class="status">
       <div class="pill"><div class="lbl">Working on</div><div class="val now">Phase 2 — D prior</div></div>
       <div class="pill"><div class="lbl">Data</div><div class="val">HML3D → s<sub>t</sub>, 1 s</div></div>
-      <div class="pill"><div class="lbl">Motion</div><div class="val">restart D (RF sign)</div></div>
+      <div class="pill"><div class="lbl">Motion</div><div class="val">D jitter continue</div></div>
       <div class="pill"><div class="lbl">Last closed</div><div class="val ok">Phase 1 grounding</div></div>
     </div>
   </header>
@@ -55,7 +55,10 @@
         and sweep \(u\) (forward / turn / look): pelvis and head arrive. If \(D\) ignores
         \(u\), do not train \(Q\). First 104k-step run inverted the RF velocity
         (samples stayed noise while loss fell). Restarted after matching
-        ActionPlan’s \(v=\varepsilon-x_0\). Job: <a href="run.html">Run</a>.
+        ActionPlan’s \(v=\varepsilon-x_0\). Pose is in the right ballpark at ~80
+        epochs; remaining failure is 30&nbsp;fps shake (RF MSE does not penalize
+        white residuals). Next: resume 200k weights with shared \(t\) + velocity
+        term. Job: <a href="run.html">Run</a>.
         Details on <a href="phases.html#p2">Phases</a>.
       </p>
     </div>

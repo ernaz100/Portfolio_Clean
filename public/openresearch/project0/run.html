@@ -44,6 +44,12 @@ python -m motion.check_data --n 8 --recompute-stats --split val</pre>
       </p>
       <pre class="cmd">sbatch motion/train_d.sbatch</pre>
       <p>
+        After 200k: resume the same weights with shared \(t\) and a velocity
+        term (kills the 30&nbsp;fps shake; do not start from scratch):
+      </p>
+      <pre class="cmd">cd /mnt/lustre/work/ponsmoll/pba794/project0
+python -m motion.train resume_dir=/mnt/lustre/work/ponsmoll/pba794/project0/out/d_prior trainer.max_steps=260000 wandb_mode=online wandb_project=project0_d</pre>
+      <p>
         Single-GPU debug (yaml overrides; mesh viz still runs on rank 0):
       </p>
       <pre class="cmd">python -m motion.train wandb_mode=online trainer.devices=1 trainer.max_steps=200</pre>
