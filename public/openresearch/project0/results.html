@@ -59,8 +59,19 @@
       </article>
       <p>
         Train is Hydra + Lightning (<code>motion/configs/train_d.yaml</code>).
-        200k-step job not submitted. Sweep-u pass is after that job, not this QC.
+        First 200k-step job (to step 104k / ~44 epochs, 9 Sep 2026) had the
+        rectified-flow target flipped: \(v=x_0-\varepsilon\) while Euler still
+        integrated as if \(v=\varepsilon-x_0\). Loss fell ~1.3 → ~0.21;
+        samples stayed collapsed. \(u\) error 0 is inpaint, not a body check.
+        Archived under <code>out/d_prior/broken_vsign/</code>. Restarted with
+        ActionPlan’s sign plus frame positional encoding. Sweep-\(u\) is after
+        that job, not this QC.
       </p>
+      <article class="clip">
+        <h3>inverted RF, step 104k</h3>
+        <div class="meta">t=0 locked; t=15/29 collapsed · loss was still falling</div>
+        <img src="/openresearch/project0/media/d_prior/broken_vsign/viz/step_0104000/00_012698_0_stick.png" alt="inverted rectified-flow sample vs GT" />
+      </article>
     </section>
 
     <section id="grounding">

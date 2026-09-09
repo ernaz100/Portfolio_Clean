@@ -27,7 +27,7 @@
     <div class="status">
       <div class="pill"><div class="lbl">Working on</div><div class="val now">Phase 2 — D prior</div></div>
       <div class="pill"><div class="lbl">Data</div><div class="val">HML3D → s<sub>t</sub>, 1 s</div></div>
-      <div class="pill"><div class="lbl">Motion</div><div class="val">train D (not submitted)</div></div>
+      <div class="pill"><div class="lbl">Motion</div><div class="val">restart D (RF sign)</div></div>
       <div class="pill"><div class="lbl">Last closed</div><div class="val ok">Phase 1 grounding</div></div>
     </div>
   </header>
@@ -53,9 +53,10 @@
         <strong>Pass.</strong> Conversion overlays coincide
         (<a href="results.html#d-prior">Results</a>). After training, hold \(c=\)“walk”
         and sweep \(u\) (forward / turn / look): pelvis and head arrive. If \(D\) ignores
-        \(u\), do not train \(Q\). Job: <a href="run.html">Run</a>
-        (<code>sbatch motion/train_d.sbatch</code>, not started). Details on
-        <a href="phases.html#p2">Phases</a>.
+        \(u\), do not train \(Q\). First 104k-step run inverted the RF velocity
+        (samples stayed noise while loss fell). Restarted after matching
+        ActionPlan’s \(v=\varepsilon-x_0\). Job: <a href="run.html">Run</a>.
+        Details on <a href="phases.html#p2">Phases</a>.
       </p>
     </div>
 
