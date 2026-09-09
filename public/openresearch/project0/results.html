@@ -59,13 +59,12 @@
       </article>
       <p>
         Train is Hydra + Lightning (<code>motion/configs/train_d.yaml</code>).
-        Submit with <code>sbatch motion/train_d.sbatch</code> when this looks right
-        (not submitted).
+        200k-step job not submitted. Sweep-u pass is after that job, not this QC.
       </p>
     </section>
 
     <section id="grounding">
-      <h2>Phase 1 — grounding (full clip, 4 Sep 2026)</h2>
+      <h2>Phase 1 — grounding (closed, 4 Sep 2026)</h2>
       <p>
         Take <code>2023-01-17@00-33-01</code>. Frozen SAM 3 image PCS on <strong>all 300</strong>
         ego frames (stride 1), lifted with <em>causal</em> VGGT-Ω (past-only W=25).

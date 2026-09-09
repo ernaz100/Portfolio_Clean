@@ -13,7 +13,8 @@
     <h1>Parked on purpose</h1>
     <p class="lede">
       Not the current phase. Do not start these because they are more fun than
-      grounding. Related papers, old Track D, and durable decisions live here.
+      training \(D\). Related papers, old CLIP-into-ActionPlan, and durable decisions
+      live here.
     </p>
     <nav class="site">
       <a href="project.html">Now</a>
@@ -54,7 +55,7 @@
             <td>Us (phases 1–4)</td>
             <td>Text, grounded in 3D</td>
             <td>Ego VGGT-Ω</td>
-            <td>Frozen ActionPlan until 2</td>
+            <td>\(D\) on 1&nbsp;s \(s_t\), then \(Q\)</td>
             <td>Later <code>r<sub>c</sub></code>; not from mocap</td>
           </tr>
         </tbody>
@@ -69,7 +70,7 @@
         with VGGT-Long-style overlapping chunks. We stay on
         <code>vggt_omega_1b_512.pt</code> and change <em>when</em> frames enter
         <code>model()</code> (<code>ego/vggt_omega_stream.py</code>). Do not train or
-        download StreamVGGT for Phase 0/1. 10B Omega is unreleased.
+        download StreamVGGT for Phase 0–2. 10B Omega is unreleased.
       </p>
     </section>
 
@@ -102,7 +103,7 @@
       </p>
       <p>
         Keep it as the “text embedding into the denoiser” baseline in a comparison table.
-        Do not train it as phase 1. Do not grow the window set until grounding exists.
+        Do not train it instead of \(D\). Grounding already exists.
       </p>
     </section>
 
@@ -145,8 +146,8 @@
         <thead><tr><th>Choice</th><th>Why</th></tr></thead>
         <tbody>
           <tr>
-            <td>ActionPlan as motion prior, not CLOPS code we do not run</td>
-            <td>We have the 272 RF. Phase 2 must still consume a geometric goal, not CLIP-in-denoiser.</td>
+            <td>\(D\) from scratch on \(s_t\), not ActionPlan 272</td>
+            <td>272 stores root velocity; \(Q\) needs metres. Fine-tune is the CLIP-in-denoiser baseline.</td>
           </tr>
           <tr>
             <td>Xiao 272, rotation recover, 22 joints</td>

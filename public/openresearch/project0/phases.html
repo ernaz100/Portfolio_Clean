@@ -36,8 +36,8 @@
       <p>
         That is CLOPS with the geometric goal replaced by
         <strong>grounding</strong>: map a phrase onto places in the observed 3D scene
-        (and later, onto a place a human should stand). The motion prior stays frozen
-        until that map exists.
+        (and later, onto a place a human should stand). The map exists on the demo
+        kitchen. This week trains our own 1&nbsp;s prior \(D\), then a controller on top.
       </p>
     </section>
 
@@ -76,7 +76,7 @@
     </section>
 
     <section id="p1">
-      <h2>Phase 1 — grounding <span class="now">(now)</span></h2>
+      <h2>Phase 1 — grounding <span class="ok">(done)</span></h2>
       <p>
         Grounding means: the phrase refers to <em>this stuff in this scene</em> — pixels
         or 3D points — not a CLIP vector in language space.
@@ -107,48 +107,63 @@
         </dd>
         <dt>Pass</dt>
         <dd>
-          On the demo kitchen, for objects that are <em>in the ego window</em>
-          (oven, vase, table-like surfaces we can name from TRUMANS assets): the heatmap
-          peaks on the correct instance more often than on a random other object.
-          Report retrieval / localization, not MPJPE.
+          On the demo kitchen, in-view names (oven, vase, table) light the right instance
+          on a human overlay more often than a random other object. Causal 3D is emptier
+          early. Closed 4 Sep 2026 — see <a href="results.html#grounding">Results</a>.
         </dd>
-        <dt>Not yet</dt>
+        <dt>Not in this phase</dt>
         <dd>
-          Off-screen objects, “walk to”, standing pose vs tabletop, fine-tuning VGGT,
-          fine-tuning ActionPlan, SAM 3 <em>video</em> tracking. Native <code>Actions/*.txt</code>
-          lines (“pick up the vase”) are interaction captions, not grounding queries — use object names.
+          Off-screen objects, “walk to”, standing pose vs tabletop, SAM 3 <em>video</em>
+          tracking. Native <code>Actions/*.txt</code> lines (“pick up the vase”) are
+          interaction captions, not grounding queries.
         </dd>
       </dl>
     </section>
 
     <section id="p2">
-      <h2>Phase 2 — red-sphere equivalent</h2>
+      <h2>Phase 2 — red-sphere equivalent <span class="now">(now: D)</span></h2>
+      <p>
+        First slice (this week): train \(D\). Do not walk in the apartment, do not train
+        \(Q\), until the sweep test below passes.
+      </p>
       <dl class="kv">
-        <dt>Goal</dt>
+        <dt>Goal (D)</dt>
         <dd>
-          Turn the object support into a <strong>navigation goal</strong> \(g\): a point
-          (or small set) in free space where a person would stand for “walk to X”,
-          not the centroid of the tabletop. Feed \(g\) to a <strong>frozen</strong>
-          motion system the same way CLOPS feeds a sphere.
+          Rectified flow on 1&nbsp;s windows of \(s_t\) from HumanML3D
+          (<code>data/hml3d_st/</code>, T=30, stride 15). Inpaint
+          \(u=(x,z,\theta,\psi)\) at the last frame; frame 0 is the current pose.
+          CLIP \(c\), drop ~15%. Skin to SMPL-X. Hydra + Lightning:
+          <code>motion/configs/train_d.yaml</code>.
         </dd>
-        <dt>Purpose</dt>
+        <dt>Purpose (D)</dt>
         <dd>
-          Same controller, only the goal source changes. If this works, grounding is
-          doing the language work. If it fails, the prior/controller is the bottleneck,
-          not the heatmap. We do not have CLOPS code; ActionPlan (or a dumb walk-toward)
-          is the frozen prior. Inventing a geometric-target channel on ActionPlan is
-          allowed here; jointly training scene-attn with CLIP is not.
+          \(Q\) will write a 1&nbsp;s root/head target from ego. \(D\) must hit it in
+          metres and look human. Not ActionPlan 272 (velocity root). Not CLIP into that
+          denoiser (<a href="backlog.html#baseline-d">baseline</a>). TRUMANS stays out of \(D\).
         </dd>
-        <dt>Pass</dt>
+        <dt>Pass (D)</dt>
         <dd>
-          Object starts <em>in view</em>. Avatar approaches a stand-pose near the named
-          object and does not walk through it. No look-around required.
+          Conversion overlay coincides (<a href="results.html#d-prior">Results</a>).
+          After training: hold \(c=\)“walk”, sweep \(u\) (forward / turn / look). Pelvis
+          and head arrive. If \(D\) ignores \(u\), stop.
+        </dd>
+        <dt>Then (g + Q)</dt>
+        <dd>
+          Turn object support into a stand-pose \(g\) in free space (not the tabletop).
+          Freeze \(D\). \(Q\) writes \(u\) the way CLOPS writes a sphere. First \(g\):
+          nearest free floor cell with clearance.
+        </dd>
+        <dt>Pass (phase)</dt>
+        <dd>
+          Object starts <em>in view</em>. Pelvis near \(g\) / a high \(p_{\mathrm{goal}}\)
+          cell (~0.5&nbsp;m). No walk-through. No look-around required.
+        </dd>
+        <dt>Not yet</dt>
+        <dd>
+          Walking in TRUMANS, \(p_{\mathrm{obj}}\to p_{\mathrm{goal}}\) fields, \(Q\),
+          jointly training scene-attn with CLIP inside \(D\).
         </dd>
       </dl>
-      <p class="note">
-        First \(g\) can be nearest free floor cell to the heatmap with clearance.
-        Learn “where humans stand” from TRUMANS pelvis endpoints later, not in phase 1.
-      </p>
     </section>
 
     <section id="p3">
@@ -213,7 +228,7 @@
     </section>
   </main>
   <footer>
-    Phase 1 is the only active stepstone. Everything else is ordered, not optional flavor.
+    Phase 2 (train D) is the only active stepstone. Phase 1 grounding is closed.
   </footer>
 </body>
 </html>
