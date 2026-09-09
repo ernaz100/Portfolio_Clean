@@ -9,12 +9,12 @@
 </head>
 <body>
   <header>
-    <div class="kicker">project0 · updated 4 Sep 2026</div>
+    <div class="kicker">project0 · updated 9 Sep 2026</div>
     <h1>Language-conditioned ego navigation</h1>
     <p class="lede">
       Replace CLOPS’s painted sphere with a phrase (“walk to the table”), using only
-      egocentric vision. Ground language in 3D first. Do not stuff a CLIP vector into
-      the motion prior and hope it invents geometry.
+      egocentric vision. Ground language in 3D first. Then a frozen body prior that
+      hits a 1&nbsp;s root/head target — not a CLIP vector in a denoiser.
     </p>
     <!-- keep this nav identical on every page; mark the current link with class="current" -->
     <nav class="site">
@@ -25,52 +25,39 @@
       <a href="run.html">Run</a>
     </nav>
     <div class="status">
-      <div class="pill"><div class="lbl">Working on</div><div class="val now">Phase 1 — grounding</div></div>
-      <div class="pill"><div class="lbl">Scene</div><div class="val">2023-01-17@00-33-01</div></div>
-      <div class="pill"><div class="lbl">Motion</div><div class="val">not in this phase</div></div>
-      <div class="pill"><div class="lbl">Last closed</div><div class="val ok">placement diagnostic</div></div>
+      <div class="pill"><div class="lbl">Working on</div><div class="val now">Phase 2 — D prior</div></div>
+      <div class="pill"><div class="lbl">Data</div><div class="val">HML3D → s<sub>t</sub>, 1 s</div></div>
+      <div class="pill"><div class="lbl">Motion</div><div class="val">train D (not submitted)</div></div>
+      <div class="pill"><div class="lbl">Last closed</div><div class="val ok">Phase 1 grounding</div></div>
     </div>
   </header>
 
   <main>
     <div class="now-card">
       <div class="tag">Now</div>
-      <h2>Phase 1 — semantic 3D grounding</h2>
+      <h2>Phase 2 — train D (1 s body chunks)</h2>
       <p>
-        <strong>Goal.</strong> Given ego RGB and a name (“oven”, “vase”, “table”), mark the
-        matching 3D points in the <em>causal</em> VGGT-Ω map. No avatar motion.
+        <strong>Goal.</strong> Train a scene-free prior \(D\) on HumanML3D: 30-frame
+        windows of \(s_t\) (absolute root + SMPL 6D). Inpaint \(u=(x,z,\theta,\psi)\)
+        at the last frame; keep frame 0 clean. CLIP caption \(c\), drop ~15%. No TAE.
+        No TRUMANS.
       </p>
       <p>
-        <strong>Purpose.</strong> CLOPS is told <em>where</em> to go (a sphere). We are told
-        <em>what</em> to go to. Frozen SAM 3 marks the name in ego RGB; past-only VGGT-Ω
-        lifts those pixels. If that overlay is wrong, later walking is not
-        language-conditioned. The 300-frame bidirectional recon is an oracle, not the method.
+        <strong>Purpose.</strong> Later \(Q\) writes a 1&nbsp;s root/head target from
+        ego. \(D\) must look human and <em>hit</em> that \(u\) in metres. ActionPlan 272
+        stores root velocity (drifts). Stuffing CLIP into that denoiser still does not
+        name a 3D place — that baseline stays on
+        <a href="backlog.html#baseline-d">Backlog</a>.
       </p>
       <p>
-        <strong>Pass.</strong> On this kitchen, a named object that is visible in the ego
-        window lights up the right instance, not a random nearby surface. Full-clip
-        overlays (300 frames) are on
-        <a href="results.html#grounding">Results</a>. Details on
-        <a href="phases.html">Phases</a>.
+        <strong>Pass.</strong> Conversion overlays coincide
+        (<a href="results.html#d-prior">Results</a>). After training, hold \(c=\)“walk”
+        and sweep \(u\) (forward / turn / look): pelvis and head arrive. If \(D\) ignores
+        \(u\), do not train \(Q\). Job: <a href="run.html">Run</a>
+        (<code>sbatch motion/train_d.sbatch</code>, not started). Details on
+        <a href="phases.html#p2">Phases</a>.
       </p>
     </div>
-
-    <section>
-      <h2>Why this, not ActionPlan fine-tune</h2>
-      <p>
-        Putting CLIP <em>c</em> and VGGT registers into the ActionPlan denoiser (old Track D)
-        replaces the sphere with a <em>text embedding</em>. That does not say which 3D location
-        in this room is the table. D stays a <a href="backlog.html#baseline-d">baseline</a>,
-        not the method. ActionPlan remains the motion prior for phases 2–4, frozen until
-        grounding works.
-      </p>
-      <p>
-        SceMoS already does text-to-scene from a god’s-eye BEV. CLOPS already does ego
-        navigation to an explicit 3D goal. The gap is
-        <strong>ego + language → spatial goal</strong>, then a controller that never needed
-        the sentence.
-      </p>
-    </section>
 
     <section>
       <h2>Stepstones</h2>
@@ -82,18 +69,18 @@
             <p>Ego render + causal VGGT-Ω. Batch recon is an oracle. Done.</p>
           </div>
         </a>
-        <a class="step current" href="phases.html#p1">
-          <div class="n">1 now</div>
+        <a class="step done" href="phases.html#p1">
+          <div class="n">1</div>
           <div>
             <h3>Grounding</h3>
-            <p>SAM 3 on all 300 ego frames, lift with causal VGGT. No motion.</p>
+            <p>SAM 3 on all 300 ego frames, lift with causal VGGT. Closed.</p>
           </div>
         </a>
-        <a class="step" href="phases.html#p2">
-          <div class="n">2</div>
+        <a class="step current" href="phases.html#p2">
+          <div class="n">2 now</div>
           <div>
-            <h3>Sphere equivalent</h3>
-            <p>Heatmap → stand-pose <em>g</em> → frozen prior. Same controller, new goal source.</p>
+            <h3>D, then sphere equivalent</h3>
+            <p>Train \(D\) on 1&nbsp;s \(s_t\). Then heatmap → stand-pose \(g\) → frozen \(D\).</p>
           </div>
         </a>
         <a class="step" href="phases.html#p3">
