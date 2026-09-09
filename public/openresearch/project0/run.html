@@ -67,6 +67,30 @@ python ego/ground_viz.py --sequence 2023-01-17@00-33-01</pre>
     </section>
 
     <section>
+      <h2>D prior (s_t, not started)</h2>
+      <p>
+        Converted HumanML3D lives in <code>data/hml3d_st/</code>. Check conversion and
+        1&nbsp;s windows (stick + SMPL-X mesh) before any train job. GPU work in tmux
+        <code>gpu</code>. <code>--skip-mesh</code> if you only want sticks.
+      </p>
+      <pre class="cmd">cd /mnt/lustre/work/ponsmoll/pba794/project0
+source /mnt/lustre/work/ponsmoll/pba794/venvs/pytorch-env/bin/activate
+export PYTHONPATH=/mnt/lustre/work/ponsmoll/pba794/project0
+python -m motion.curate --device cuda
+python -m motion.check_data --n 8 --recompute-stats --split val</pre>
+      <p>
+        Hydra config <code>motion/configs/train_d.yaml</code>, Lightning DDP, SMPL-X mesh
+        + root/head/<code>u</code> overlays every 2k steps. Does <em>not</em> auto-start;
+        submit when the overlays look right:
+      </p>
+      <pre class="cmd">sbatch motion/train_d.sbatch</pre>
+      <p>
+        Single-GPU debug (yaml overrides; mesh viz still runs on rank 0):
+      </p>
+      <pre class="cmd">python -m motion.train wandb_mode=online trainer.devices=1 trainer.max_steps=200</pre>
+    </section>
+
+    <section>
       <h2>Baseline D (do not prioritize)</h2>
       <pre class="cmd">cd /mnt/lustre/work/ponsmoll/pba794/project0/ActionPlan-Code
 python prepare/trumans_smplx_to_272.py --seq 2023-01-17@00-33-01
@@ -95,8 +119,11 @@ python place/finish_smoke.py</pre>
           <tr><td><code>ego/</code></td><td>Head camera, Blender, VGGT-Ω</td></tr>
           <tr><td><code>place/</code></td><td>Occupancy / HML3D plant (diagnostic)</td></tr>
           <tr><td><code>ActionPlan-Code/</code></td><td>Motion prior + baseline D</td></tr>
-          <tr><td><code>data/</code></td><td>TRUMANS (gitignored)</td></tr>
+          <tr><td><code>data/trumans/</code></td><td>TRUMANS (gitignored)</td></tr>
+          <tr><td><code>data/humanml3d_272/</code></td><td>HML3D 272 source</td></tr>
+          <tr><td><code>data/hml3d_st/</code></td><td>Absolute-root + 6D windows for D</td></tr>
           <tr><td><code>out/ego/</code></td><td>Demo ego + VGGT</td></tr>
+          <tr><td><code>out/d_prior/</code></td><td>D checkpoints, check viz, train logs</td></tr>
           <tr><td><code>papers/</code></td><td>CLOPS, SceMoS PDFs</td></tr>
         </tbody>
       </table>

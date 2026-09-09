@@ -24,6 +24,46 @@
   </header>
 
   <main>
+    <section id="d-prior">
+      <h2>D prior — conversion check (8 Sep 2026)</h2>
+      <p>
+        HumanML3D-272 → \(s_t\). Main overlay (orange/blue) is the same 272
+        local joints: official world decode vs \(s_t\) heading+xz — those two
+        must coincide. A second still <code>*_fk.png</code> compares 272 joints
+        to 6D FK with SMPL-X rest bones; that pair is <em>not</em> supposed to
+        match (different skeleton). Heading arrow is \(R_y(\theta)\) forward
+        \((-\sin\theta,\cos\theta)\) from \(u\); purple is look \(\theta+\psi\)
+        from the head. Canonical windows start at \(x=z=\theta=0\), facing +Z.
+      </p>
+      <p><span class="lbl">stills</span> — 3 frames + top-down \(u=(x,z,\theta,\psi)\)</p>
+      <div class="grid2">
+        <article class="clip">
+          <h3>zig-zag (conversion)</h3>
+          <div class="meta">M012163 · orange/blue should overlap</div>
+          <img src="/openresearch/project0/media/d_prior/check/01_M012163_135.png" alt="zigzag conversion overlay" />
+        </article>
+        <article class="clip">
+          <h3>same clip, 6D FK</h3>
+          <div class="meta">M012163 · FK uses different bones, will drift</div>
+          <img src="/openresearch/project0/media/d_prior/check/01_M012163_135_fk.png" alt="zigzag 6D FK overlay" />
+        </article>
+      </div>
+      <p>
+        Videos and JSON: <code>out/d_prior/check/</code>. SMPL-X mesh + top-down
+        \(u\) / heading / look (one val window):
+      </p>
+      <article class="clip">
+        <h3>mesh + root/head/u</h3>
+        <div class="meta">011751 · walk a counter-clockwise circle · green pelvis, purple head, crimson \(u\)</div>
+        <img src="/openresearch/project0/media/d_prior/mesh_smoke/00_011751_135_mesh.png" alt="SMPL-X mesh with root and head markers" />
+      </article>
+      <p>
+        Train is Hydra + Lightning (<code>motion/configs/train_d.yaml</code>).
+        Submit with <code>sbatch motion/train_d.sbatch</code> when this looks right
+        (not submitted).
+      </p>
+    </section>
+
     <section id="grounding">
       <h2>Phase 1 — grounding (full clip, 4 Sep 2026)</h2>
       <p>
