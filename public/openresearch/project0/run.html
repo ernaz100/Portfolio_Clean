@@ -39,16 +39,11 @@ python -m motion.curate --device cuda
 python -m motion.check_data --n 8 --recompute-stats --split val</pre>
       <p>
         Hydra config <code>motion/configs/train_d.yaml</code>, Lightning DDP, SMPL-X mesh
-        + root/head/<code>u</code> overlays every 2k steps. Do not resume the
-        inverted-RF checkpoints under <code>out/d_prior/broken_vsign/</code>:
+        + root/head/<code>u</code> overlays every 2k steps. Walltime 4&nbsp;h
+        (~3&nbsp;h of training). Do not resume inverted-RF checkpoints under
+        <code>out/d_prior/broken_vsign/</code>:
       </p>
       <pre class="cmd">sbatch motion/train_d.sbatch</pre>
-      <p>
-        After 200k: resume the same weights with shared \(t\) and a velocity
-        term (kills the 30&nbsp;fps shake; do not start from scratch):
-      </p>
-      <pre class="cmd">cd /mnt/lustre/work/ponsmoll/pba794/project0
-python -m motion.train resume_dir=/mnt/lustre/work/ponsmoll/pba794/project0/out/d_prior trainer.max_steps=260000 wandb_mode=online wandb_project=project0_d</pre>
       <p>
         Single-GPU debug (yaml overrides; mesh viz still runs on rank 0):
       </p>
