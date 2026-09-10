@@ -63,14 +63,23 @@
         rectified-flow target flipped: \(v=x_0-\varepsilon\) while Euler still
         integrated as if \(v=\varepsilon-x_0\). Loss fell ~1.3 → ~0.21;
         samples stayed collapsed. \(u\) error 0 is inpaint, not a body check.
-        Archived under <code>out/d_prior/broken_vsign/</code>. Restarted with
-        ActionPlan’s sign plus frame positional encoding. Sweep-\(u\) is after
-        that job, not this QC.
+        Archived under <code>out/d_prior/broken_vsign/</code>. Next 200k run
+        (shared \(t\), vel weight 0.5, 10 Sep 2026) got a human pose but
+        pelvis <code>xz_jerk</code> plateaued ~0.028 vs GT 0.00033 (~86×).
+        Unweighted vel is drowned by 132 rotation dims. Archived under
+        <code>out/d_prior/jitter_vel/</code>. Retrain uses root-weighted
+        vel/acc, AR(1) noise, interior smooth that keeps \(u\). Sweep-\(u\)
+        is after that job, not this QC.
       </p>
       <article class="clip">
         <h3>inverted RF, step 104k</h3>
         <div class="meta">t=0 locked; t=15/29 collapsed · loss was still falling</div>
         <img src="/openresearch/project0/media/d_prior/broken_vsign/viz/step_0104000/00_012698_0_stick.png" alt="inverted rectified-flow sample vs GT" />
+      </article>
+      <article class="clip">
+        <h3>shared-t + vel, step 200k</h3>
+        <div class="meta">pose ok · pelvis scribble · \(u\) still inpaint-zero</div>
+        <img src="/openresearch/project0/media/d_prior/jitter_vel/viz/step_0200000/00_012698_0_stick.png" alt="jittery pelvis after velocity loss" />
       </article>
     </section>
 

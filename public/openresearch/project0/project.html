@@ -9,7 +9,7 @@
 </head>
 <body>
   <header>
-    <div class="kicker">project0 · updated 9 Sep 2026</div>
+    <div class="kicker">project0 · updated 10 Sep 2026</div>
     <h1>Language-conditioned ego navigation</h1>
     <p class="lede">
       Replace CLOPS’s painted sphere with a phrase (“walk to the table”), using only
@@ -27,7 +27,7 @@
     <div class="status">
       <div class="pill"><div class="lbl">Working on</div><div class="val now">Phase 2 — D prior</div></div>
       <div class="pill"><div class="lbl">Data</div><div class="val">HML3D → s<sub>t</sub>, 1 s</div></div>
-      <div class="pill"><div class="lbl">Motion</div><div class="val">retrain D (shared t)</div></div>
+      <div class="pill"><div class="lbl">Motion</div><div class="val">retrain D (root jerk)</div></div>
       <div class="pill"><div class="lbl">Last closed</div><div class="val ok">Phase 1 grounding</div></div>
     </div>
   </header>
@@ -53,11 +53,12 @@
         <strong>Pass.</strong> Conversion overlays coincide
         (<a href="results.html#d-prior">Results</a>). After training, hold \(c=\)“walk”
         and sweep \(u\) (forward / turn / look): pelvis and head arrive. If \(D\) ignores
-        \(u\), do not train \(Q\). First run inverted RF; second run (to ~80
-        epochs) had the right pose but 30&nbsp;fps shake. Retraining from
-        scratch with shared \(t\) and a velocity term. Job:
-        <a href="run.html">Run</a> (<code>sbatch motion/train_d.sbatch</code>,
-        ~3&nbsp;h). Details on <a href="phases.html#p2">Phases</a>.
+        \(u\), do not train \(Q\). Shared-\(t\) + unweighted vel still left a
+        pelvis scribble at 200k (<code>xz_jerk</code> ~86× GT). Retraining with
+        root-weighted vel/acc, colored noise, interior smooth that freezes
+        \(u\). Job: <a href="run.html">Run</a>
+        (<code>sbatch motion/train_d.sbatch</code>, ~3&nbsp;h). Details on
+        <a href="phases.html#p2">Phases</a>.
       </p>
     </div>
 

@@ -40,8 +40,9 @@ python -m motion.check_data --n 8 --recompute-stats --split val</pre>
       <p>
         Hydra config <code>motion/configs/train_d.yaml</code>, Lightning DDP, SMPL-X mesh
         + root/head/<code>u</code> overlays every 2k steps. Walltime 4&nbsp;h
-        (~3&nbsp;h of training). Do not resume inverted-RF checkpoints under
-        <code>out/d_prior/broken_vsign/</code>:
+        (~3&nbsp;h of training). Do not resume
+        <code>out/d_prior/broken_vsign/</code> or
+        <code>out/d_prior/jitter_vel/</code>:
       </p>
       <pre class="cmd">sbatch motion/train_d.sbatch</pre>
       <p>
