@@ -27,7 +27,7 @@
     <div class="status">
       <div class="pill"><div class="lbl">Working on</div><div class="val now">Phase 2 — D prior</div></div>
       <div class="pill"><div class="lbl">Data</div><div class="val">HML3D → s<sub>t</sub>, 1 s</div></div>
-      <div class="pill"><div class="lbl">Motion</div><div class="val">retrain D (root jerk)</div></div>
+      <div class="pill"><div class="lbl">Motion</div><div class="val">D ~78k, jerk down</div></div>
       <div class="pill"><div class="lbl">Last closed</div><div class="val ok">Phase 1 grounding</div></div>
     </div>
   </header>
@@ -47,17 +47,18 @@
         ego. \(D\) must look human and <em>hit</em> that \(u\) in metres. ActionPlan 272
         stores root velocity (drifts). Stuffing CLIP into that denoiser still does not
         name a 3D place — that baseline stays on
-        <a href="backlog.html#baseline-d">Backlog</a>.
+        <a href="backlog.html#baseline-d">Backlog</a>. A Kimodo-style
+        explicit-root / latent-body \(D\) is parked under
+        <a href="backlog.html#hybrid-d">hybrid D</a>.
       </p>
       <p>
         <strong>Pass.</strong> Conversion overlays coincide
         (<a href="results.html#d-prior">Results</a>). After training, hold \(c=\)“walk”
         and sweep \(u\) (forward / turn / look): pelvis and head arrive. If \(D\) ignores
-        \(u\), do not train \(Q\). Shared-\(t\) + unweighted vel still left a
-        pelvis scribble at 200k (<code>xz_jerk</code> ~86× GT). Retraining with
-        root-weighted vel/acc, colored noise, interior smooth that freezes
-        \(u\). Job: <a href="run.html">Run</a>
-        (<code>sbatch motion/train_d.sbatch</code>, ~3&nbsp;h). Details on
+        \(u\), do not train \(Q\). Current run (root-weighted vel/acc, colored
+        noise, interior smooth that freezes \(u\)): at ~78k,
+        <code>xz_jerk</code> ~0.002 vs GT 0.00033 (old unweighted vel plateaued
+        ~0.028). Job: <a href="run.html">Run</a>. Details on
         <a href="phases.html#p2">Phases</a>.
       </p>
     </div>

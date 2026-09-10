@@ -33,6 +33,12 @@
         The couch is always in the image.
         <a href="/openresearch/project0/media/papers/2509.19259_Moving_by_Looking.pdf">CLOPS</a> — ego vision to a
         <em>sphere</em>, frozen AMASS prior, Q on head targets, mesh collision in the reward.
+        <a href="/openresearch/project0/media/papers/2607.27180_HumanCLAW.pdf">HumanCLAW</a> — frozen VLM as Q,
+        AMASS DiT as D, find–nav–sit; VLMs fail at body awareness (best sit 16.8%).
+        <a href="/openresearch/project0/media/papers/2603.05377_OpenFrontier.pdf">OpenFrontier</a> — VLM-scored visual
+        frontiers, stand-offset from the object, robot PointNav (no body).
+        <a href="/openresearch/project0/media/papers/2606.18426_VEGA.pdf">VEGA</a> — ego video → MoGe-2 + Florence-2
+        → MPPI labels → RGB-only navigation VLA (quadruped waypoints; map discarded at test).
       </p>
       <table>
         <thead><tr><th></th><th>Goal</th><th>Sensor</th><th>Motion</th><th>Non-penetration</th></tr></thead>
@@ -52,6 +58,20 @@
             <td>Simulator <code>r<sub>c</sub></code></td>
           </tr>
           <tr>
+            <td>HumanCLAW</td>
+            <td>Find / sit category</td>
+            <td>Ego RGB + text history</td>
+            <td>Frozen VLM skills → AMASS DiT</td>
+            <td>Half-physics Habitat</td>
+          </tr>
+          <tr>
+            <td>OpenFrontier</td>
+            <td>Open-vocab object</td>
+            <td>2D frontiers + optional occupancy</td>
+            <td>PointNav, no body</td>
+            <td>Planner / occupancy</td>
+          </tr>
+          <tr>
             <td>Us (phases 1–4)</td>
             <td>Text, grounded in 3D</td>
             <td>Ego VGGT-Ω</td>
@@ -60,6 +80,14 @@
           </tr>
         </tbody>
       </table>
+      <p>
+        HumanCLAW is the closest neighbor: same CLOPS split, untrained Q.
+        Their result (VLMs lose the body) is why we train \(Q\) on a painted
+        \(p_{\mathrm{goal}}\) instead of prompting a VLM. OpenFrontier already
+        publishes “stand offset from the object”; cite it when we write \(\Phi\).
+        VEGA is the robot cousin (geometry at train, RGB-only VLA at test, no body).
+        Do not claim first ego full-body language nav, and do not distill our map away.
+      </p>
     </section>
 
     <section id="streamvggt">
@@ -90,6 +118,18 @@
         scene-to-caption retrieval. Registers never see patches in that head. It cannot
         score “oven” on 3D points. Keep as a possible retrieval side channel, not the
         Phase 1 matcher.
+      </p>
+    </section>
+
+    <section id="hybrid-d">
+      <h2>Hybrid D — explicit root, latent body (not now)</h2>
+      <p>
+        NVIDIA’s quality stack (Kimodo / ARDY / MotionBricks): overwrite
+        constraints on an <em>explicit</em> root in metres, generate the body
+        in a tokenizer. \(u\) stays last-frame \((x,z,\theta,\psi)\); the latent
+        never stores those four numbers. Do this only if the current 137-D
+        prior is too jittery to freeze for \(Q\). Motion quality is not the
+        Phase 2 bottleneck once pelvis/head hit \(u\).
       </p>
     </section>
 
